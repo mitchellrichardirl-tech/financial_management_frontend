@@ -3,6 +3,7 @@ import { getAccounts, previewFile, importFile } from '../services/api';
 import FileDropzone from '../components/FileDropzone';
 import PreviewTable from '../components/PreviewTable';
 import AccountSelector from '../components/AccountSelector';
+import ImportResult from '../components/ImportResult';
 
 function UploadStatement() {
   // State management
@@ -14,6 +15,16 @@ function UploadStatement() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [importResult, setImportResult] = useState(null);
+
+  const handleUploadAnother = () => {
+    // Reset everything
+    setSelectedFile(null);
+    setPreviewData(null);
+    setSelectedAccountId('');
+    setStartRow(1);
+    setImportResult(null);
+    setError(null);
+  };
 
   // Handle file selection and trigger preview
   const handleFileSelect = async (file) => {
@@ -39,6 +50,11 @@ function UploadStatement() {
     }
   };
 
+  const handleAccountCreated = (newAccount) => {
+    // Add new account to the list
+    setAccounts([...accounts, newAccount]);
+  };
+
   const handleImport = async () => {
     if (selectedAccountId === '') {
       setError('Please select an account');
@@ -55,22 +71,16 @@ function UploadStatement() {
     setError(null);
 
     try {
-        const result = await importFile(selectedFile, startRow, selectedAccountId);
-        console.log('Import result:', result);
-        setImportResult(result);
-        
-        alert(`Successfully imported ${result.rows_imported || 'data'} rows!`);
-        
-        // Reset form
-        setSelectedFile(null);
-        setPreviewData(null);
-        setSelectedAccountId('');
-        setStartRow(0);
+      const result = await importFile(selectedFile, startRow, selectedAccountId);
+      console.log('Import result:', result); // Check what we get back
+      setImportResult(result);
+      
+      // Don't reset the form yet - keep it visible to show results
     } catch (err) {
-        console.error('Import error:', err);
-        setError(err.message || 'Failed to import file');
+      console.error('Import error:', err);
+      setError(err.message || 'Failed to import file');
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -102,64 +112,69 @@ function UploadStatement() {
         </div>
       )}
 
-      {!previewData && !isLoading && (
-        <FileDropzone 
-          onFileSelect={handleFileSelect}
-          disabled={isLoading}
+      {/* Show import result if available */}
+      {importResult ? (
+        <ImportResult 
+          result={importResult}
+          onUploadAnother={handleUploadAnother}
         />
-      )}
-
-      {selectedFile && (
-        <div style={{ 
-          marginTop: '20px', 
-          padding: '10px',
-          backgroundColor: '#e7f3ff',
-          borderRadius: '4px'
-        }}>
-          <strong>Selected file:</strong> {selectedFile.name}
-        </div>
-      )}
-
-      {previewData && (
+      ) : (
         <>
-          <PreviewTable 
-            previewData={previewData}
-            startRow={startRow}
-            onStartRowChange={setStartRow}
-          />
-          
-          <AccountSelector
-            accounts={accounts}
-            selectedAccountId={selectedAccountId}
-            onAccountChange={setSelectedAccountId}
-            disabled={isLoading}
-          />
+          {/* Existing upload UI */}
+          {!previewData && !isLoading && (
+            <FileDropzone 
+              onFileSelect={handleFileSelect}
+              disabled={isLoading}
+            />
+          )}
 
-          <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f5f5f5' }}>
-            <p>Debug - Selected Account ID: {selectedAccountId} (type: {typeof selectedAccountId})</p>
-            <p>Is empty string: {selectedAccountId === '' ? 'YES' : 'NO'}</p>
-            <p>Is Loading: {isLoading ? 'true' : 'false'}</p>
-            <p>Button should be enabled: {!isLoading && selectedAccountId !== '' ? 'YES' : 'NO'}</p>
-          </div>
-          
-          <button
-            onClick={handleImport}
-            disabled={isLoading || selectedAccountId === ''}  // Changed this line
-            style={{
-              marginTop: '20px',
-              padding: '12px 30px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              color: 'white',
-              backgroundColor: selectedAccountId === '' ? '#6c757d' : '#28a745',  // And this
-              border: 'none',
-              borderRadius: '4px',
-              cursor: selectedAccountId === '' || isLoading ? 'not-allowed' : 'pointer',  // And this
-              opacity: selectedAccountId === '' || isLoading ? 0.6 : 1  // And this
-            }}
-          >
-            {isLoading ? 'Importing...' : 'Import Transactions'}
-          </button>
+          {selectedFile && (
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '10px',
+              backgroundColor: '#e7f3ff',
+              borderRadius: '4px'
+            }}>
+              <strong>Selected file:</strong> {selectedFile.name}
+            </div>
+          )}
+
+          {previewData && (
+            <>
+              <PreviewTable 
+                previewData={previewData}
+                startRow={startRow}
+                onStartRowChange={setStartRow}
+              />
+              
+              <AccountSelector
+                accounts={accounts}
+                selectedAccountId={selectedAccountId}
+                onAccountChange={setSelectedAccountId}
+                onAccountCreated={handleAccountCreated}
+                disabled={isLoading}
+              />
+
+              <button
+                onClick={handleImport}
+                disabled={isLoading || selectedAccountId === ''}
+                style={{
+                  marginTop: '20px',
+                  padding: '12px 30px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: 'white',
+                  backgroundColor: selectedAccountId === '' ? '#6c757d' : '#28a745',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: selectedAccountId === '' || isLoading ? 'not-allowed' : 'pointer',
+                  opacity: selectedAccountId === '' || isLoading ? 0.6 : 1
+                }}
+              >
+                {isLoading ? 'Importing...' : 'Import Transactions'}
+              </button>
+            </>
+          )}
         </>
       )}
     </div>

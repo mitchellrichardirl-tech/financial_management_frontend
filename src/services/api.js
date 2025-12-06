@@ -66,3 +66,40 @@ export async function importFile(file, startRow, accountId) {
     body: formData,
   });
 }
+
+/**
+ * Get transactions with optional filters
+ */
+export async function getTransactions(filters = {}) {
+  const params = new URLSearchParams();
+  
+  // Add filters to query params
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      params.append(key, value);
+    }
+  });
+  
+  const queryString = params.toString();
+  const url = `/transactions${queryString ? '?' + queryString : ''}`;
+  
+  const response = await apiCall(url);
+  return response.data;
+}
+
+/**
+ * Create a new account
+ */
+export async function createAccount(accountName, accountType) {
+  const response = await apiCall('/accounts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      account_name: accountName,
+      account_type: accountType
+    })
+  });
+  return response.data; // Return the created account
+}
