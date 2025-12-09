@@ -16,7 +16,9 @@ export default function TransactionTable({
   onTypeCreated,
   onPartyCreated,
   selectedTransactions,
-  onSelectionChange
+  onSelectionChange,
+  filters,
+  onFilterChange
 }) {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   
@@ -26,7 +28,7 @@ export default function TransactionTable({
     type: null,
     parentId: null,
     parentName: '',
-    onSuccess: null, // Callback when item is created
+    onSuccess: null,
   });
 
   const transactionArray = Array.isArray(transactions) ? transactions : [];
@@ -81,6 +83,34 @@ export default function TransactionTable({
     }
   };
 
+  // Filter change handler - properly preserves existing filters
+  const handleFilterFieldChange = (field, value) => {
+    console.log('Filter change:', field, value, 'Current filters:', filters);
+    
+    const newFilters = { ...filters };
+    
+    if (value === undefined || value === '' || value === null) {
+      // Remove the filter if value is empty
+      delete newFilters[field];
+    } else {
+      // Set the filter value
+      newFilters[field] = value;
+    }
+    
+    console.log('New filters:', newFilters);
+    onFilterChange(newFilters);
+  };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    console.log('Clearing all filters');
+    onFilterChange({});
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = Object.keys(filters).length > 0 && 
+    Object.values(filters).some(v => v !== undefined && v !== '' && v !== null);
+
   // Unified create handler - called by TransactionRow
   const handleOpenCreateModal = (type, parentId, parentName, onSuccess) => {
     console.log('Opening create modal:', { type, parentId, parentName });
@@ -128,7 +158,6 @@ export default function TransactionTable({
       
       console.log('Created new item:', newItem);
       
-      // Call the success callback to update the draft in TransactionRow
       if (onSuccess && newItem) {
         onSuccess(newItem);
       }
@@ -144,8 +173,11 @@ export default function TransactionTable({
   const allSelected = transactionArray.length > 0 && 
     selectedTransactions.length === transactionArray.length;
 
-  const SortableHeader = ({ field, children }) => (
-    <th onClick={() => handleSort(field)} className="sortable-header">
+  const SortableHeader = ({ field, children, className = '' }) => (
+    <th 
+      onClick={() => handleSort(field)} 
+      className={`sortable-header ${className}`}
+    >
       {children}
       {sortConfig.key === field && (
         <span className="sort-indicator">
@@ -155,12 +187,17 @@ export default function TransactionTable({
     </th>
   );
 
+  console.log('Current filters state:', filters);
+  console.log('is_kids filter:', filters.is_kids, typeof filters.is_kids);
+  console.log('is_one_off filter:', filters.is_one_off, typeof filters.is_one_off);
+
   return (
     <>
       <div className="transaction-table-container">
         <table className="transaction-table">
           <thead>
-            <tr>
+            {/* Header row */}
+            <tr className="header-row">
               <th className="select-header">
                 <input
                   type="checkbox"
@@ -171,16 +208,176 @@ export default function TransactionTable({
               <SortableHeader field="description">Description</SortableHeader>
               <th>Cleaned Description</th>
               <SortableHeader field="transaction_date">Date</SortableHeader>
-              <SortableHeader field="amount">Amount</SortableHeader>
-              <SortableHeader field="is_credit">Lodgment</SortableHeader>
+              <SortableHeader field="amount" className="amount-header">Amount</SortableHeader>
+              <SortableHeader field="is_credit" className="lodgment-header">Lodgment</SortableHeader>
               <SortableHeader field="account_name">Account</SortableHeader>
               <SortableHeader field="party_name">Party</SortableHeader>
               <SortableHeader field="type_name">Type</SortableHeader>
               <SortableHeader field="sub_category_name">Sub-Category</SortableHeader>
               <SortableHeader field="category_name">Category</SortableHeader>
-              <SortableHeader field="is_kids">Kid's</SortableHeader>
-              <SortableHeader field="is_one_off">One-Off</SortableHeader>
+              <SortableHeader field="is_kids" className="kids-header">Kid's</SortableHeader>
+              <SortableHeader field="is_one_off" className="one-off-header">One-Off</SortableHeader>
               <th className="actions-header">Actions</th>
+            </tr>
+            
+            {/* Filter row */}
+            <tr className="filter-row">
+              <td className="filter-cell">
+                {hasActiveFilters && (
+                  <button 
+                    className="clear-filters-btn" 
+                    onClick={handleClearFilters}
+                    title="Clear all filters"
+                  >
+                    ✕
+                  </button>
+                )}
+              </td>
+              <td className="filter-cell">
+                <input
+                  type="text"
+                  placeholder="Filter..."
+                  value={filters.description || ''}
+                  onChange={(e) => handleFilterFieldChange('description', e.target.value)}
+                  className="filter-input"
+                />
+              </td>
+              <td className="filter-cell">
+                <input
+                  type="text"
+                  placeholder="Filter..."
+                  value={filters.cleaned_description || ''}
+                  onChange={(e) => handleFilterFieldChange('cleaned_description', e.target.value)}
+                  className="filter-input"
+                />
+              </td>
+              <td className="filter-cell">
+                <input
+                  type="date"
+                  value={filters.date_from || ''}
+                  onChange={(e) => handleFilterFieldChange('date_from', e.target.value)}
+                  className="filter-input filter-date"
+                  title="From date"
+                />
+              </td>
+              <td className="filter-cell">
+                {/* Amount filter - could add min/max */}
+              </td>
+              <td className="filter-cell filter-cell-center">
+                <select
+                  value={filters.is_credit === true ? 'true' : filters.is_credit === false ? 'false' : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    handleFilterFieldChange('is_credit', val === '' ? undefined : val === 'true');
+                  }}
+                  className="filter-select"
+                >
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </td>
+              <td className="filter-cell">
+                <select
+                  value={filters.account_id || ''}
+                  onChange={(e) => handleFilterFieldChange('account_id', e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">All</option>
+                  {accounts.map(account => (
+                    <option key={account.id} value={account.id}>
+                      {account.name}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="filter-cell">
+                <select
+                  value={filters.party_id || ''}
+                  onChange={(e) => handleFilterFieldChange('party_id', e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">All</option>
+                  {parties.map(party => (
+                    <option key={party.id} value={party.id}>
+                      {party.name}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="filter-cell">
+                <select
+                  value={filters.type_id || ''}
+                  onChange={(e) => handleFilterFieldChange('type_id', e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">All</option>
+                  {types.map(type => (
+                    <option key={type.id} value={type.id}>
+                      {type.type}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="filter-cell">
+                <select
+                  value={filters.sub_category_id || ''}
+                  onChange={(e) => handleFilterFieldChange('sub_category_id', e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">All</option>
+                  {subCategories.map(subCat => (
+                    <option key={subCat.id} value={subCat.id}>
+                      {subCat.sub_category}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="filter-cell">
+                <select
+                  value={filters.category_id || ''}
+                  onChange={(e) => handleFilterFieldChange('category_id', e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">All</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.category}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="filter-cell filter-cell-center">
+                <select
+                  value={filters.is_kids === true ? 'true' : filters.is_kids === false ? 'false' : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    handleFilterFieldChange('is_kids', val === '' ? undefined : val === 'true');
+                  }}
+                  className="filter-select"
+                >
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </td>
+              <td className="filter-cell filter-cell-center">
+                <select
+                  value={filters.is_one_off === true ? 'true' : filters.is_one_off === false ? 'false' : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    handleFilterFieldChange('is_one_off', val === '' ? undefined : val === 'true');
+                  }}
+                  className="filter-select"
+                >
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </td>
+              <td className="filter-cell">
+                {/* Actions column - no filter */}
+              </td>
             </tr>
           </thead>
           <tbody>

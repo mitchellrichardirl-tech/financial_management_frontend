@@ -77,13 +77,22 @@ export default function CategorizeTransactions() {
     }
   };
 
+  const handleFilterChange = useCallback((newFilters) => {
+    console.log('CategorizeTransactions: handleFilterChange called with:', newFilters);
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, []);
+
+  // In loadTransactions, make sure boolean filters are sent correctly
   const loadTransactions = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // Clean filters - remove null/empty values
+      // Clean filters - remove null/empty values but KEEP false values
       const cleanFilters = Object.entries(filters).reduce((acc, [key, value]) => {
+        // Keep the value if it's not null, not undefined, and not empty string
+        // This ensures false values are preserved
         if (value !== null && value !== undefined && value !== '') {
           acc[key] = value;
         }
@@ -99,9 +108,6 @@ export default function CategorizeTransactions() {
       const data = await getTransactions(cleanFilters);
       
       console.log('Received transactions:', data.length);
-      if (data.length > 0) {
-        console.log('First transaction account:', data[0]?.account_name, 'ID:', data[0]?.account_id);
-      }
       
       setTransactions(data);
       
@@ -186,11 +192,6 @@ export default function CategorizeTransactions() {
       setLoading(false);
     }
   };
-
-  const handleFilterChange = useCallback((newFilters) => {
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, []);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -291,15 +292,6 @@ export default function CategorizeTransactions() {
         </div>
       )}
 
-      <FilterBar
-        accounts={accounts}
-        parties={parties}
-        categories={categories}
-        subCategories={subCategories}
-        types={types}
-        onFilterChange={handleFilterChange}
-      />
-
       <TransactionTable
         transactions={transactions}
         accounts={accounts}
@@ -314,6 +306,8 @@ export default function CategorizeTransactions() {
         onPartyCreated={handlePartyCreated}
         selectedTransactions={selectedTransactions}
         onSelectionChange={setSelectedTransactions}
+        filters={filters}
+        onFilterChange={handleFilterChange}
       />
 
       <Pagination

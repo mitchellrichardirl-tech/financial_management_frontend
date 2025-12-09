@@ -313,12 +313,12 @@ export default function TransactionRow({
       </td>
       
       {/* Account - read only */}
-      <td className="account-cell">
+      <td className="account-cell" title={transaction.account_name || ''}>
         {transaction.account_name || '-'}
       </td>
       
       {/* Party */}
-      <td className="party-cell">
+      <td className="party-cell" title={isEditing ? '' : transaction.party_name || ''}>
         {isEditing ? (
           <DropdownWithCreate
             value={draft.party_id}
@@ -338,7 +338,7 @@ export default function TransactionRow({
       </td>
       
       {/* Type */}
-      <td className="type-cell">
+      <td className="type-cell" title={isEditing ? '' : transaction.type_name || ''}>
         {isEditing ? (
           <DropdownWithCreate
             value={draft.type_id}
@@ -358,7 +358,7 @@ export default function TransactionRow({
       </td>
       
       {/* Sub-Category */}
-      <td className="sub-category-cell">
+      <td className="sub-category-cell" title={isEditing ? '' : transaction.sub_category_name || ''}>
         {isEditing ? (
           <DropdownWithCreate
             value={draft.sub_category_id}
@@ -378,7 +378,7 @@ export default function TransactionRow({
       </td>
       
       {/* Category */}
-      <td className="category-cell">
+      <td className="category-cell" title={isEditing ? '' : transaction.category_name || ''}>
         {isEditing ? (
           <DropdownWithCreate
             value={draft.category_id}

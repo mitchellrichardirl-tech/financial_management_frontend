@@ -139,6 +139,7 @@ export async function updateTransaction(transactionId, updates) {
   }
 }
 
+
 /**
  * Get all categories
  */

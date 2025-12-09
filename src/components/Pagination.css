@@ -1,10 +1,11 @@
 .pagination {
+  flex-shrink: 0; /* Don't shrink */
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
-  margin: 1.5rem 0;
-  padding: 1rem;
+  gap: 8px;
+  padding: 16px 0;
+  background-color: #f5f6fa;
 }
 
 .pagination-button {
