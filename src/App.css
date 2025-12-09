@@ -24,6 +24,7 @@ html, body {
   border-bottom: 1px solid #ddd;
   display: flex;
   gap: 20px;
+  justify-content: center; /* Center the nav items */
 }
 
 .nav-menu a {
@@ -39,14 +40,22 @@ html, body {
   background-color: #e0e0e0;
 }
 
-/* Main content area */
+/* Main content area - center children */
 .main-content {
   flex: 1;
-  min-height: 0; /* Critical for flex child scrolling */
+  min-height: 0;
   overflow: hidden;
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  background-color: #f5f6fa; /* Optional: add a subtle background */
 }
 
 /* Home page */
 .home-page {
+  width: 100%;
+  max-width: 1200px; /* Limit width */
   padding: 20px;
+  overflow: auto;
+  height: 100%;
+  box-sizing: border-box;
 }

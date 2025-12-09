@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { getAccounts, previewFile, importFile } from '../services/api';
 import FileDropzone from '../components/FileDropzone';
 import PreviewTable from '../components/PreviewTable';
-import AccountSelector from '../components/AccountSelector';
 import ImportResult from '../components/ImportResult';
+import './UploadStatement.css';
 
 function UploadStatement() {
-  // State management
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewData, setPreviewData] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -17,7 +16,6 @@ function UploadStatement() {
   const [importResult, setImportResult] = useState(null);
 
   const handleUploadAnother = () => {
-    // Reset everything
     setSelectedFile(null);
     setPreviewData(null);
     setSelectedAccountId('');
@@ -26,7 +24,6 @@ function UploadStatement() {
     setError(null);
   };
 
-  // Handle file selection and trigger preview
   const handleFileSelect = async (file) => {
     setSelectedFile(file);
     setError(null);
@@ -35,23 +32,20 @@ function UploadStatement() {
     setIsLoading(true);
 
     try {
-        const preview = await previewFile(file);
-        setPreviewData(preview);
-        
-        // Fetch accounts
-        const accountsData = await getAccounts();
-        console.log('Available accounts:', accountsData); // Debug line
-        setAccounts(accountsData);
+      const preview = await previewFile(file);
+      setPreviewData(preview);
+      
+      const accountsData = await getAccounts();
+      setAccounts(accountsData);
     } catch (err) {
-        setError(err.message || 'Failed to preview file');
-        setSelectedFile(null);
+      setError(err.message || 'Failed to preview file');
+      setSelectedFile(null);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleAccountCreated = (newAccount) => {
-    // Add new account to the list
     setAccounts([...accounts, newAccount]);
   };
 
@@ -61,21 +55,18 @@ function UploadStatement() {
       return;
     }
 
-    console.log('Starting import:', {
-      file: selectedFile,
-      startRow,
-      accountId: selectedAccountId
-    });
-
     setIsLoading(true);
     setError(null);
 
     try {
       const result = await importFile(selectedFile, startRow, selectedAccountId);
-      console.log('Import result:', result); // Check what we get back
-      setImportResult(result);
       
-      // Don't reset the form yet - keep it visible to show results
+      // Debug: Log the actual response
+      console.log('Import API response:', result);
+      console.log('Response type:', typeof result);
+      console.log('Response keys:', result ? Object.keys(result) : 'null');
+      
+      setImportResult(result);
     } catch (err) {
       console.error('Import error:', err);
       setError(err.message || 'Failed to import file');
@@ -84,95 +75,121 @@ function UploadStatement() {
     }
   };
 
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const getFileExtension = (filename) => {
+    return filename.split('.').pop().toUpperCase();
+  };
+
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="upload-statement">
       <h1>Upload Bank Statement</h1>
       
       {error && (
-        <div style={{ 
-          color: 'red', 
-          padding: '10px', 
-          border: '1px solid red', 
-          borderRadius: '4px',
-          marginBottom: '20px',
-          backgroundColor: '#ffe6e6'
-        }}>
+        <div className="upload-error">
           {error}
         </div>
       )}
 
       {isLoading && (
-        <div style={{ 
-          padding: '20px', 
-          textAlign: 'center',
-          fontSize: '18px',
-          color: '#007bff'
-        }}>
+        <div className="upload-loading">
           Loading...
         </div>
       )}
 
-      {/* Show import result if available */}
       {importResult ? (
-        <ImportResult 
-          result={importResult}
-          onUploadAnother={handleUploadAnother}
-        />
+        <div className="import-result-section">
+          <ImportResult 
+            result={importResult}
+            onUploadAnother={handleUploadAnother}
+            showHeader={true}
+          />
+        </div>
       ) : (
         <>
-          {/* Existing upload UI */}
           {!previewData && !isLoading && (
-            <FileDropzone 
-              onFileSelect={handleFileSelect}
-              disabled={isLoading}
-            />
-          )}
-
-          {selectedFile && (
-            <div style={{ 
-              marginTop: '20px', 
-              padding: '10px',
-              backgroundColor: '#e7f3ff',
-              borderRadius: '4px'
-            }}>
-              <strong>Selected file:</strong> {selectedFile.name}
+            <div className="dropzone-section">
+              <FileDropzone 
+                onFileSelect={handleFileSelect}
+                disabled={isLoading}
+              />
             </div>
           )}
 
-          {previewData && (
+          {selectedFile && previewData && (
             <>
-              <PreviewTable 
-                previewData={previewData}
-                startRow={startRow}
-                onStartRowChange={setStartRow}
-              />
-              
-              <AccountSelector
-                accounts={accounts}
-                selectedAccountId={selectedAccountId}
-                onAccountChange={setSelectedAccountId}
-                onAccountCreated={handleAccountCreated}
-                disabled={isLoading}
-              />
+              <div className="file-info">
+                <div className="file-info-item">
+                  <span className="file-info-label">File:</span>
+                  <span className="file-info-value">{selectedFile.name}</span>
+                </div>
+                <div className="file-info-divider"></div>
+                <div className="file-info-item">
+                  <span className="file-info-label">Type:</span>
+                  <span className="file-info-value">{getFileExtension(selectedFile.name)}</span>
+                </div>
+                <div className="file-info-divider"></div>
+                <div className="file-info-item">
+                  <span className="file-info-label">Size:</span>
+                  <span className="file-info-value">{formatFileSize(selectedFile.size)}</span>
+                </div>
+                <button className="file-remove-btn" onClick={handleUploadAnother}>
+                  Remove
+                </button>
+              </div>
 
-              <button
-                onClick={handleImport}
-                disabled={isLoading || selectedAccountId === ''}
-                style={{
-                  marginTop: '20px',
-                  padding: '12px 30px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  color: 'white',
-                  backgroundColor: selectedAccountId === '' ? '#6c757d' : '#28a745',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: selectedAccountId === '' || isLoading ? 'not-allowed' : 'pointer',
-                  opacity: selectedAccountId === '' || isLoading ? 0.6 : 1
-                }}
-              >
-                {isLoading ? 'Importing...' : 'Import Transactions'}
-              </button>
+              <div className="preview-section">
+                <div className="preview-table-container">
+                  <PreviewTable 
+                    previewData={previewData}
+                    startRow={startRow}
+                    onStartRowChange={setStartRow}
+                    compact={true}
+                  />
+                </div>
+
+                <div className="import-controls">
+                  <div className="start-row-control">
+                    <label>Start Row:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={startRow}
+                      onChange={(e) => setStartRow(parseInt(e.target.value) || 1)}
+                    />
+                  </div>
+
+                  <div className="account-control">
+                    <label>Account:</label>
+                    <select
+                      value={selectedAccountId}
+                      onChange={(e) => setSelectedAccountId(e.target.value)}
+                      disabled={isLoading}
+                    >
+                      <option value="">-- Select Account --</option>
+                      {accounts.map(account => (
+                        <option key={account.id} value={account.id}>
+                          {account.name || account.account_name || account.title || `Account ${account.id}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    className="import-btn"
+                    onClick={handleImport}
+                    disabled={isLoading || selectedAccountId === ''}
+                  >
+                    {isLoading ? 'Importing...' : 'Import Transactions'}
+                  </button>
+                </div>
+              </div>
             </>
           )}
         </>

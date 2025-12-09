@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getTransactions } from '../services/api';
+import './ImportResult.css';
 
-function ImportResult({ result, onUploadAnother }) {
+export default function ImportResult({ result, onUploadAnother, showHeader = true }) {
   const [transactions, setTransactions] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -9,6 +10,8 @@ function ImportResult({ result, onUploadAnother }) {
   useEffect(() => {
     if (result?.upload_id) {
       fetchTransactions();
+    } else {
+      setLoading(false);
     }
   }, [result?.upload_id]);
 
@@ -17,9 +20,10 @@ function ImportResult({ result, onUploadAnother }) {
       setLoading(true);
       const data = await getTransactions({ 
         upload_id: result.upload_id,
-        limit: 500 // Get all transactions from this upload
+        limit: 500
       });
-      setTransactions(data.transactions);
+      // Handle different response structures
+      setTransactions(data.transactions || data);
     } catch (err) {
       setError('Failed to load transactions');
       console.error('Error fetching transactions:', err);
@@ -28,168 +32,149 @@ function ImportResult({ result, onUploadAnother }) {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   if (!result) return null;
 
+  // Calculate summary stats
+  const totalIncome = transactions
+    ? transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + parseFloat(t.amount), 0)
+    : 0;
+  
+  const totalExpenses = transactions
+    ? Math.abs(transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + parseFloat(t.amount), 0))
+    : 0;
+  
+  const categorizedCount = transactions
+    ? transactions.filter(t => t.party_id).length
+    : 0;
+
   return (
-    <div style={{ marginTop: '30px' }}>
-      <div style={{
-        padding: '20px',
-        backgroundColor: '#d4edda',
-        border: '1px solid #c3e6cb',
-        borderRadius: '4px',
-        marginBottom: '20px'
-      }}>
-        <h2 style={{ color: '#155724', marginTop: 0 }}>✓ Import Successful!</h2>
-        <div style={{ fontSize: '14px' }}>
-          <p><strong>File:</strong> {result.file_name}</p>
-          <p><strong>Rows imported:</strong> {result.rows_imported}</p>
-          <p><strong>Upload ID:</strong> {result.upload_id}</p>
-        </div>
-      </div>
-
-      <button
-        onClick={onUploadAnother}
-        style={{
-          padding: '10px 20px',
-          fontSize: '14px',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginBottom: '20px'
-        }}
-      >
-        Upload Another Statement
-      </button>
-
-      {/* Transactions Table */}
-      <div style={{ marginTop: '30px' }}>
-        <h3>Imported Transactions</h3>
-        
-        {loading && <p>Loading transactions...</p>}
-        
-        {error && (
-          <div style={{ color: 'red', padding: '10px' }}>
-            {error}
-          </div>
-        )}
-        
-        {transactions && !loading && (
-          <>
-            <p style={{ marginBottom: '20px' }}>
-              Showing {transactions.length} processed transactions
-            </p>
-            
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                backgroundColor: 'white',
-                fontSize: '14px'
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8f9fa' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                      Date
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                      Description
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #dee2e6' }}>
-                      Amount
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                      Party
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                      Category
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                      Type
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((txn) => (
-                    <tr key={txn.id} style={{ borderBottom: '1px solid #dee2e6' }}>
-                      <td style={{ padding: '10px' }}>
-                        {new Date(txn.transaction_date).toLocaleDateString('en-IE')}
-                      </td>
-                      <td style={{ padding: '10px' }}>
-                        {txn.description}
-                      </td>
-                      <td style={{ 
-                        padding: '10px', 
-                        textAlign: 'right',
-                        color: txn.amount > 0 ? 'green' : 'red',
-                        fontWeight: 'bold'
-                      }}>
-                        €{Math.abs(txn.amount).toFixed(2)}
-                        {txn.amount > 0 ? ' ↑' : ' ↓'}
-                      </td>
-                      <td style={{ padding: '10px' }}>
-                        {txn.party_name || '-'}
-                      </td>
-                      <td style={{ padding: '10px' }}>
-                        {txn.category_name ? (
-                          <span>
-                            {txn.category_name}
-                            {txn.sub_category_name && (
-                              <span style={{ fontSize: '12px', color: '#666' }}>
-                                {' → ' + txn.sub_category_name}
-                              </span>
-                            )}
-                          </span>
-                        ) : '-'}
-                      </td>
-                      <td style={{ padding: '10px' }}>
-                        {txn.type_name || '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+    <div className="import-result">
+      {showHeader && (
+        <div className="import-result-header">
+          <div className="import-success-banner">
+            <h2>✓ Import Successful!</h2>
+            <div className="import-details">
+              <span className="import-detail-item">
+                <span className="detail-label">File:</span>
+                <span className="detail-value">{result.file_name}</span>
+              </span>
+              <span className="import-detail-divider">|</span>
+              <span className="import-detail-item">
+                <span className="detail-label">Rows:</span>
+                <span className="detail-value">{result.rows_imported}</span>
+              </span>
+              <span className="import-detail-divider">|</span>
+              <span className="import-detail-item">
+                <span className="detail-label">Upload ID:</span>
+                <span className="detail-value">{result.upload_id}</span>
+              </span>
             </div>
+          </div>
 
-            {/* Summary Stats */}
-            <div style={{ 
-              marginTop: '30px', 
-              padding: '20px',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '4px'
-            }}>
-              <h4>Summary</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-                <div>
-                  <strong>Total Income:</strong> €{
-                    transactions
-                      .filter(t => t.amount > 0)
-                      .reduce((sum, t) => sum + t.amount, 0)
-                      .toFixed(2)
-                  }
-                </div>
-                <div>
-                  <strong>Total Expenses:</strong> €{
-                    Math.abs(
-                      transactions
-                        .filter(t => t.amount < 0)
-                        .reduce((sum, t) => sum + t.amount, 0)
-                    ).toFixed(2)
-                  }
-                </div>
-                <div>
-                  <strong>Categorized:</strong> {
-                    transactions.filter(t => t.party_id).length
-                  } / {transactions.length}
-                </div>
+          <button className="upload-another-btn" onClick={onUploadAnother}>
+            Upload Another File
+          </button>
+        </div>
+      )}
+
+      {/* Loading state */}
+      {loading && (
+        <div className="import-loading">
+          Loading transactions...
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <div className="import-error">
+          {error}
+        </div>
+      )}
+
+      {/* Transactions table */}
+      {transactions && !loading && (
+        <div className="import-transactions-section">
+          <div className="transactions-header">
+            <h3>Imported Transactions</h3>
+            <span className="transactions-count">{transactions.length} transactions</span>
+          </div>
+
+          <div className="import-table-wrapper">
+            <table className="import-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th className="amount-header">Amount</th>
+                  <th>Party</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((txn) => (
+                  <tr key={txn.id}>
+                    <td className="date-cell">
+                      {formatDate(txn.transaction_date)}
+                    </td>
+                    <td className="description-cell" title={txn.description}>
+                      {txn.description}
+                    </td>
+                    <td className={`amount-cell ${txn.amount > 0 ? 'positive' : 'negative'}`}>
+                      €{Math.abs(parseFloat(txn.amount)).toFixed(2)}
+                      <span className="amount-indicator">{txn.amount > 0 ? '↑' : '↓'}</span>
+                    </td>
+                    <td className="party-cell">
+                      {txn.party_name || '-'}
+                    </td>
+                    <td className="category-cell">
+                      {txn.category_name ? (
+                        <>
+                          {txn.category_name}
+                          {txn.sub_category_name && (
+                            <span className="sub-category"> → {txn.sub_category_name}</span>
+                          )}
+                        </>
+                      ) : '-'}
+                    </td>
+                    <td className="type-cell">
+                      {txn.type_name || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Summary stats */}
+          <div className="import-summary">
+            <h4>Summary</h4>
+            <div className="summary-grid">
+              <div className="summary-stat">
+                <span className="stat-label">Total Income</span>
+                <span className="stat-value positive">€{totalIncome.toFixed(2)}</span>
+              </div>
+              <div className="summary-stat">
+                <span className="stat-label">Total Expenses</span>
+                <span className="stat-value negative">€{totalExpenses.toFixed(2)}</span>
+              </div>
+              <div className="summary-stat">
+                <span className="stat-label">Categorized</span>
+                <span className="stat-value">{categorizedCount} / {transactions.length}</span>
               </div>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-export default ImportResult;

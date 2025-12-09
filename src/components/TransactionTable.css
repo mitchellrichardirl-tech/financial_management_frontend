@@ -1,8 +1,7 @@
 /* Container that uses full width */
 .transaction-table-container {
-  flex: 1; /* Take all remaining space */
-  min-height: 0; /* Important for flex child scrolling */
   width: 100%;
+  max-height: calc(100vh - 200px);
   overflow-x: auto;
   overflow-y: auto;
   background: white;
@@ -14,7 +13,7 @@
 /* Table takes full width */
 .transaction-table {
   width: 100%;
-  min-width: 1400px;
+  min-width: 1400px; /* Keep minimum width for readability */
   border-collapse: collapse;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
