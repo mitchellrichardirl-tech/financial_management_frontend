@@ -24,7 +24,8 @@ async function apiCall(endpoint, options = {}) {
  */
 export async function getAccounts() {
   const response = await apiCall('/accounts');
-  return response.data; // Extract data array from success response
+  // Keep backward compatibility - extract data array if it exists
+  return response.data || response;
 }
 
 /**
@@ -49,7 +50,7 @@ export async function importFile(file, startRow, accountId) {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('start_row', startRow.toString());
-  formData.append('account_id', parseInt(accountId).toString()); // Convert to int, then to string for FormData
+  formData.append('account_id', parseInt(accountId).toString());
   formData.append('has_header', 'true');
   formData.append('skip_empty_rows', 'true');
   formData.append('strip_whitespace', 'true');
@@ -84,7 +85,18 @@ export async function getTransactions(filters = {}) {
   const url = `/transactions${queryString ? '?' + queryString : ''}`;
   
   const response = await apiCall(url);
-  return response.data;
+  
+  // Extract transactions from nested structure
+  if (response && response.data && response.data.transactions) {
+    return response.data.transactions;
+  } else if (response && response.transactions) {
+    return response.transactions;
+  } else if (Array.isArray(response)) {
+    return response;
+  } else {
+    console.error('Unexpected response format:', response);
+    return [];
+  }
 }
 
 /**
@@ -101,5 +113,209 @@ export async function createAccount(accountName, accountType) {
       account_type: accountType
     })
   });
-  return response.data; // Return the created account
+  return response.data || response; // Return the created account
+}
+
+/**
+ * Update a transaction
+ */
+export async function updateTransaction(transactionId, updates) {
+  const response = await apiCall(`/transactions/${transactionId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updates),
+  });
+  // Handle nested response
+  if (response && response.data && response.data.transaction) {
+    return response.data.transaction;
+  } else if (response && response.transaction) {
+    return response.transaction;
+  } else if (response && response.data) {
+    return response.data;
+  } else {
+    return response;
+  }
+}
+
+/**
+ * Get all categories
+ */
+export async function getCategories() {
+  const response = await apiCall('/categories');
+  // Handle nested structure
+  if (response && response.data && response.data.categories) {
+    return response.data.categories;
+  } else if (response && response.categories) {
+    return response.categories;
+  } else if (response && response.data) {
+    return response.data;
+  } else {
+    return response || [];
+  }
+}
+
+/**
+ * Get sub-categories, optionally filtered by category
+ */
+export async function getSubCategories(categoryId = null) {
+  const params = new URLSearchParams();
+  if (categoryId) params.append('category_id', categoryId);
+  
+  const queryString = params.toString();
+  const url = `/sub-categories${queryString ? '?' + queryString : ''}`;
+  
+  const response = await apiCall(url);
+  // Handle nested structure
+  if (response && response.data && response.data.sub_categories) {
+    return response.data.sub_categories;
+  } else if (response && response.sub_categories) {
+    return response.sub_categories;
+  } else if (response && response.data) {
+    return response.data;
+  } else {
+    return response || [];
+  }
+}
+
+/**
+ * Get types, optionally filtered by sub-category
+ */
+export async function getTypes(subCategoryId = null) {
+  const params = new URLSearchParams();
+  if (subCategoryId) params.append('sub_category_id', subCategoryId);
+  
+  const queryString = params.toString();
+  const url = `/types${queryString ? '?' + queryString : ''}`;
+  
+  const response = await apiCall(url);
+  // Handle nested structure
+  if (response && response.data && response.data.types) {
+    return response.data.types;
+  } else if (response && response.types) {
+    return response.types;
+  } else if (response && response.data) {
+    return response.data;
+  } else {
+    return response || [];
+  }
+}
+
+/**
+ * Get parties, optionally filtered by type
+ */
+export async function getParties(typeId = null) {
+  const params = new URLSearchParams();
+  if (typeId) params.append('type_id', typeId);
+  
+  const queryString = params.toString();
+  const url = `/parties${queryString ? '?' + queryString : ''}`;
+  
+  const response = await apiCall(url);
+  // Handle nested structure
+  if (response && response.data && response.data.parties) {
+    return response.data.parties;
+  } else if (response && response.parties) {
+    return response.parties;
+  } else if (response && response.data) {
+    return response.data;
+  } else {
+    return response || [];
+  }
+}
+
+/**
+ * Create a new category
+ */
+export async function createCategory(category, description = null) {
+  const body = {
+    category
+  };
+  
+  // Only add description if it's provided and not empty
+  if (description && description.trim()) {
+    body.description = description.trim();
+  }
+  
+  const response = await apiCall('/categories', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return response.category || response;
+}
+
+/**
+ * Create a new sub-category
+ */
+export async function createSubCategory(subCategory, categoryId, description = null) {
+  const body = {
+    sub_category: subCategory,
+    category_id: categoryId
+  };
+  
+  // Only add description if it's provided and not empty
+  if (description && description.trim()) {
+    body.description = description.trim();
+  }
+  
+  const response = await apiCall('/sub-categories', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return response.sub_category || response;
+}
+
+/**
+ * Create a new type
+ */
+export async function createType(type, subCategoryId, description = null) {
+  const body = {
+    type,
+    sub_category_id: subCategoryId
+  };
+  
+  // Only add description if it's provided and not empty
+  if (description && description.trim()) {
+    body.description = description.trim();
+  }
+  
+  const response = await apiCall('/types', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return response.type || response;
+}
+
+/**
+ * Create a new party
+ */
+export async function createParty(name, typeId, description = null) {
+  const body = {
+    name,
+    type_id: typeId
+  };
+  
+  // Only add description if it's provided and not empty
+  if (description && description.trim()) {
+    body.description = description.trim();
+  }
+  
+  const response = await apiCall('/parties', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return response.party || response;
 }

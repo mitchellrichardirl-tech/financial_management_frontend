@@ -40,3 +40,32 @@
 .read-the-docs {
   color: #888;
 }
+
+.app {
+  width: 100%;
+}
+
+.main-nav {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #333;
+}
+
+.main-nav a {
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.main-nav a:hover {
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+  .main-nav {
+    border-bottom-color: #ddd;
+  }
+}

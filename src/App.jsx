@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import UploadStatement from './pages/UploadStatement';
+import CategorizeTransactions from './pages/CategorizeTransactions';
 import './App.css';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         }}>
           <Link to="/" style={{ marginRight: '20px' }}>Home</Link>
           <Link to="/upload" style={{ marginRight: '20px' }}>Upload Statement</Link>
+          <Link to="/categorize">Categorize Transactions</Link>
         </nav>
 
         {/* Route definitions */}
@@ -25,6 +27,7 @@ function App() {
             </div>
           } />
           <Route path="/upload" element={<UploadStatement />} />
+          <Route path="/categorize" element={<CategorizeTransactions />} />
         </Routes>
       </div>
     </Router>
