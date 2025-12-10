@@ -1,42 +1,61 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  height: 100%;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Navigation menu */
+.nav-menu {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  gap: 20px;
+  justify-content: center; /* Center the nav items */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.nav-menu a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
-.card {
-  padding: 2em;
+.nav-menu a:hover {
+  background-color: #e0e0e0;
 }
 
-.read-the-docs {
-  color: #888;
+/* Main content area - center children */
+.main-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  background-color: #f5f6fa; /* Optional: add a subtle background */
+}
+
+/* Home page */
+.home-page {
+  width: 100%;
+  max-width: 1200px; /* Limit width */
+  padding: 20px;
+  overflow: auto;
+  height: 100%;
+  box-sizing: border-box;
 }

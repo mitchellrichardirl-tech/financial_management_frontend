@@ -1,0 +1,273 @@
+.upload-statement {
+  width: 100%;
+  max-width: 1200px; /* Limit max width */
+  height: 100%;
+  margin: 0 auto; /* Center horizontally */
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.upload-statement h1 {
+  margin: 0 0 16px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  flex-shrink: 0;
+}
+
+/* Error message */
+.upload-error {
+  flex-shrink: 0;
+  color: #c62828;
+  padding: 10px 14px;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  background-color: #ffebee;
+  font-size: 14px;
+}
+
+/* Loading indicator */
+.upload-loading {
+  padding: 20px;
+  text-align: center;
+  font-size: 16px;
+  color: #1976d2;
+}
+
+/* File info bar */
+.file-info {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.file-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.file-info-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.file-info-value {
+  color: #333;
+}
+
+.file-info-divider {
+  width: 1px;
+  height: 16px;
+  background-color: #90caf9;
+}
+
+.file-remove-btn {
+  margin-left: auto;
+  padding: 4px 10px;
+  background-color: transparent;
+  border: 1px solid #1976d2;
+  border-radius: 4px;
+  color: #1976d2;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-remove-btn:hover {
+  background-color: #1976d2;
+  color: white;
+}
+
+/* Preview section */
+.preview-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Preview table container - scrollable */
+.preview-table-container {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+}
+
+/* Import controls - fixed at bottom */
+.import-controls {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 0;
+  border-top: 1px solid #eee;
+  margin-top: 16px;
+}
+
+.start-row-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.start-row-control label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.start-row-control input {
+  width: 60px;
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.account-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-control label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.account-control select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+  background-color: white;
+}
+
+.import-btn {
+  margin-left: auto;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background-color: #28a745;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.import-btn:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.import-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Import result section */
+.import-result-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.import-result-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.import-result-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.stat-item.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.stat-item.skipped {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.stat-item.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.stat-label {
+  font-weight: 500;
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.upload-another-btn {
+  padding: 10px 20px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.upload-another-btn:hover {
+  background-color: #1976d2;
+}
+
+/* Import result table container */
+.import-result-table-container {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+}
+
+/* Dropzone when no file selected */
+.dropzone-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
