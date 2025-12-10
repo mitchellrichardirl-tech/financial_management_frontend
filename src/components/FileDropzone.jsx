@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
-function FileDropzone({ onFileSelect, disabled }) {
+function FileDropzone({ 
+  onFileSelect, 
+  disabled, 
+  acceptedFileTypes = ".csv,.xlsx,.xls,.tsv,.txt",
+  supportedFormatsText = "CSV, Excel, TSV, TXT"
+}) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragOver = (e) => {
@@ -63,12 +68,12 @@ function FileDropzone({ onFileSelect, disabled }) {
             type="file"
             onChange={handleFileInput}
             disabled={disabled}
-            accept=".csv,.xlsx,.xls,.tsv,.txt"
+            accept={acceptedFileTypes}
             style={{ display: 'none' }}
           />
         </label>
         <p style={{ fontSize: '12px', color: '#999', marginTop: '10px' }}>
-          Supported formats: CSV, Excel, TSV, TXT
+          Supported formats: {supportedFormatsText}
         </p>
       </div>
     </div>

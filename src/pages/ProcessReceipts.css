@@ -1,0 +1,243 @@
+.processed-receipt-section {
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.processed-receipt-result {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.processed-receipt-result h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.receipt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.form-actions button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-save {
+  background-color: #4a90e2;
+  color: white;
+  flex: 1;
+}
+
+.btn-save:hover {
+  background-color: #357abd;
+}
+
+.btn-upload-another {
+  background-color: #6c757d;
+  color: white;
+  flex: 1;
+}
+
+.btn-upload-another:hover {
+  background-color: #5a6268;
+}
+
+.receipt-metadata {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #ddd;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.receipt-metadata p {
+  margin: 0.5rem 0;
+}
+
+.receipt-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.receipt-processing {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.processed-receipt-section {
+  max-width: 1000px;
+  margin: 2rem auto;
+}
+
+.processed-receipt-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.receipt-image-container {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.receipt-image-container h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.processed-receipt-result {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.processed-receipt-result h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+/* Responsive: stack vertically on smaller screens */
+@media (max-width: 768px) {
+  .processed-receipt-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Rest of the existing styles... */
+.receipt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.form-actions button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-save {
+  background-color: #4a90e2;
+  color: white;
+  flex: 1;
+}
+
+.btn-save:hover {
+  background-color: #357abd;
+}
+
+.btn-upload-another {
+  background-color: #6c757d;
+  color: white;
+  flex: 1;
+}
+
+.btn-upload-another:hover {
+  background-color: #5a6268;
+}
+
+.receipt-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.receipt-processing {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+}

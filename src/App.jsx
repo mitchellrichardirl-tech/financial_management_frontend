@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import UploadStatement from './pages/UploadStatement';
 import CategorizeTransactions from './pages/CategorizeTransactions';
+import ProcessReceipts from './pages/ProcessReceipts';
 import './App.css';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
           <Link to="/">Home</Link>
           <Link to="/upload">Upload Statement</Link>
           <Link to="/categorize">Categorize Transactions</Link>
+          <Link to="/process-receipts">Process Receipts</Link>
         </nav>
 
         {/* Main content area */}
@@ -25,6 +27,7 @@ function App() {
             } />
             <Route path="/upload" element={<UploadStatement />} />
             <Route path="/categorize" element={<CategorizeTransactions />} />
+            <Route path="/process-receipts" element={<ProcessReceipts />} />
           </Routes>
         </main>
       </div>

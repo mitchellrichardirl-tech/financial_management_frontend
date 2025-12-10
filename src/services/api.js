@@ -320,3 +320,26 @@ export async function createParty(name, typeId, description = null) {
   });
   return response.party || response;
 }
+
+/**
+ * Process receipt image
+ */
+export async function processReceiptImage(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return await apiCall('/receipts/upload', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+/**
+ * Get receipt image
+ */
+export async function getReceiptImage(receiptId) {
+  console.log('API url: ', `/receipts/${receiptId}/image`)
+  return await apiCall(`/receipts/${receiptId}/image`, {
+    method: 'GET'
+  });
+}
