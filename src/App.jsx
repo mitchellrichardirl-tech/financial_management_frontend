@@ -3,7 +3,7 @@ import UploadStatement from './pages/UploadStatement';
 import CategorizeTransactions from './pages/CategorizeTransactions';
 import ProcessReceipts from './pages/ProcessReceipts';
 import BulkReceiptProcessor from './pages/BulkReceiptProcessor';
-import TestThumbnail from './pages/TestThumbnail';
+import TestCandidates from './pages/TestCandidates';
 import './App.css';
 
 function App() {
@@ -17,7 +17,7 @@ function App() {
           <Link to="/categorize">Categorize Transactions</Link>
           <Link to="/process-receipts">Process Receipts</Link>
           <Link to="/bulk-upload">Bulk Upload Receipts</Link>
-          <Link to="/test-thumbnail">Test Thumbnail</Link>
+          <Link to="/test-candidates">Test Candidates</Link>
         </nav>
 
         {/* Main content area */}
@@ -33,7 +33,7 @@ function App() {
             <Route path="/categorize" element={<CategorizeTransactions />} />
             <Route path="/process-receipts" element={<ProcessReceipts />} />
             <Route path="/bulk-upload" element={<BulkReceiptProcessor />} />
-            <Route path="/test-thumbnail" element={<TestThumbnail />} />
+            <Route path="/test-candidates" element={<TestCandidates />} />
           </Routes>
         </main>
       </div>

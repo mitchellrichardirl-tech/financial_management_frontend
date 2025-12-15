@@ -1,261 +1,243 @@
-.processed-receipt-section {
-  max-width: 600px;
-  margin: 2rem auto;
+.process-receipts {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.processed-receipt-result {
-  background: #f9f9f9;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.processed-receipt-result h2 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
+.process-receipts h1 {
+  margin-bottom: 20px;
   color: #333;
 }
 
-.receipt-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #555;
-  font-size: 0.95rem;
-}
-
-.form-group input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.form-actions button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-save {
-  background-color: #4a90e2;
-  color: white;
-  flex: 1;
-}
-
-.btn-save:hover {
-  background-color: #357abd;
-}
-
-.btn-upload-another {
-  background-color: #6c757d;
-  color: white;
-  flex: 1;
-}
-
-.btn-upload-another:hover {
-  background-color: #5a6268;
-}
-
-.receipt-metadata {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #ddd;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.receipt-metadata p {
-  margin: 0.5rem 0;
-}
-
+/* Error and Success Messages */
 .receipt-error {
   background-color: #f8d7da;
   color: #721c24;
-  padding: 1rem;
+  padding: 12px 16px;
   border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.receipt-processing {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.processed-receipt-section {
-  max-width: 1000px;
-  margin: 2rem auto;
-}
-
-.processed-receipt-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: start;
-}
-
-.receipt-image-container {
-  background: #f9f9f9;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.receipt-image-container h3 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.processed-receipt-result {
-  background: #f9f9f9;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.processed-receipt-result h2 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-/* Responsive: stack vertically on smaller screens */
-@media (max-width: 768px) {
-  .processed-receipt-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Rest of the existing styles... */
-.receipt-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #555;
-  font-size: 0.95rem;
-}
-
-.form-group input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.form-actions button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-save {
-  background-color: #4a90e2;
-  color: white;
-  flex: 1;
-}
-
-.btn-save:hover {
-  background-color: #357abd;
-}
-
-.btn-upload-another {
-  background-color: #6c757d;
-  color: white;
-  flex: 1;
-}
-
-.btn-upload-another:hover {
-  background-color: #5a6268;
-}
-
-.receipt-error {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.receipt-processing {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  text-align: center;
+  margin-bottom: 16px;
+  border: 1px solid #f5c6cb;
 }
 
 .receipt-success {
-  padding: 15px;
-  margin-bottom: 20px;
   background-color: #d4edda;
-  border: 1px solid #c3e6cb;
   color: #155724;
+  padding: 12px 16px;
   border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #c3e6cb;
+}
+
+.receipt-processing {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #ffeeba;
+}
+
+/* Main Two-Column Layout */
+.processed-receipt-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Left Column - Image */
+.left-column {
+  position: sticky;
+  top: 20px;
+}
+
+.receipt-image-container {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Consistent h3 headers for all sections */
+.receipt-image-container h3,
+.receipt-details-section h3,
+.candidate-transactions-section h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Right Column - Details and Candidates */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(600px + 32px + 12px); /* Match left column: image max-height + padding + h3 */
+}
+
+/* Receipt Details Section - Compressed */
+.receipt-details-section {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* Form Styles - Compressed */
+.receipt-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.85rem;
 }
 
 .form-group .required {
   color: #dc3545;
 }
 
-.btn-save:disabled {
+.form-group input {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Form Actions - Horizontal layout */
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.form-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.btn-save {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-save:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.btn-upload-another {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-upload-another:hover {
+  background-color: #5a6268;
+}
+
+.form-actions button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Candidate Transactions Section - Constrained with scroll */
+.candidate-transactions-section {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  min-height: 0; /* Important: allows flex child to shrink below content size */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.loading-candidates {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+/* Override the h2 in CandidateTransactions component to match h3 style */
+.candidate-transactions-container h2 {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  margin: 0 0 12px 0 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .processed-receipt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .left-column {
+    position: relative;
+    top: 0;
+  }
+
+  .receipt-image-container img {
+    max-height: 400px;
+  }
+
+  .right-column {
+    max-height: none;
+  }
+
+  .candidate-transactions-section {
+    max-height: 400px;
+  }
+
+  .receipt-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .process-receipts {
+    padding: 12px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
 }

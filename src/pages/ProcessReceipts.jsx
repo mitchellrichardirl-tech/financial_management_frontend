@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { processReceiptImage, confirmReceipt, deleteReceipt } from "../services/api";
+import { useState, useEffect } from "react";
+import { processReceiptImage, confirmReceipt, deleteReceipt, getCandidateTransactions } from "../services/api";
 import FileDropzone from "../components/FileDropzone";
 import ImagePreview from "../components/ImagePreview";
+import CandidateTransactions from "../components/CandidateTransactions";
+import './ProcessReceipts.css';
 
 function ProcessReceipts() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -17,12 +19,54 @@ function ProcessReceipts() {
     amount: ""
   });
 
+  // New state for candidate transactions
+  const [candidateTransactions, setCandidateTransactions] = useState([]);
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
+
+  // Fetch candidate transactions when editableData changes
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      // Only fetch if we have at least a date or amount
+      if (!editableData.date && !editableData.amount) {
+        setCandidateTransactions([]);
+        return;
+      }
+
+      setIsLoadingCandidates(true);
+      try {
+        const params = {
+          date: editableData.date || null,
+          amount: editableData.amount ? parseFloat(editableData.amount) : null,
+          vendor: editableData.vendor || null
+        };
+
+        const response = await getCandidateTransactions(params);
+        
+        if (response.success && response.data?.transactions) {
+          setCandidateTransactions(response.data.transactions);
+        } else {
+          setCandidateTransactions([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch candidate transactions:", err);
+        setCandidateTransactions([]);
+      } finally {
+        setIsLoadingCandidates(false);
+      }
+    };
+
+    // Debounce the API call to avoid too many requests while typing
+    const timeoutId = setTimeout(fetchCandidates, 500);
+    return () => clearTimeout(timeoutId);
+  }, [editableData.date, editableData.amount, editableData.vendor]);
+
   const handleUploadAnother = () => {
     setSelectedFile(null);
     setProcessResult(null);
     setError(null);
     setSaveSuccess(false);
     setEditableData({ vendor: "", date: "", amount: "" });
+    setCandidateTransactions([]);
   };
 
   const handleFileSelect = async (file) => {
@@ -65,14 +109,11 @@ function ProcessReceipts() {
     setIsSaving(true);
 
     try {
-      // Prepare data for the confirm endpoint
       const receiptData = {
         original_filename: selectedFile.name,
         vendor: editableData.vendor,
         amount: editableData.amount ? parseFloat(editableData.amount) : null,
         date: editableData.date || null,
-        
-        // From the process result
         id: processResult?.data?.receipt?.id,
         stored_filename: processResult?.data?.receipt?.stored_filename,
         file_path: processResult?.data?.receipt?.file_path,
@@ -89,7 +130,6 @@ function ProcessReceipts() {
       
       setSaveSuccess(true);
       
-      // Optional: Clear form after successful save or show success message
       setTimeout(() => {
         handleUploadAnother();
       }, 2000);
@@ -126,8 +166,8 @@ function ProcessReceipts() {
     } finally {
       setIsSaving(false);
     }
-  }
-  // Validation to ensure vendor is filled
+  };
+
   const canSave = editableData.vendor.trim() !== '' && !isSaving;
 
   return (
@@ -154,77 +194,93 @@ function ProcessReceipts() {
 
       {selectedFile && processResult ? (
         <div className="processed-receipt-section">
-          <div className="processed-receipt-container">
-            {/* Image Preview */}
-            <div className="receipt-image-container">
-              <h3>Uploaded Receipt</h3>
-              <ImagePreview 
-                src={`/api/receipts/${processResult?.data?.receipt?.id}/image`}
-                alt="Receipt image"
-                maxHeight="500px"
-              />
+          <div className="processed-receipt-layout">
+            {/* Left Column - Image Preview */}
+            <div className="left-column">
+              <div className="receipt-image-container">
+                <h3>Uploaded Receipt</h3>
+                <ImagePreview 
+                  src={`/api/receipts/${processResult?.data?.receipt?.id}/image`}
+                  alt="Receipt image"
+                  maxHeight="600px"
+                />
+              </div>
             </div>
 
-            {/* Editable Form */}
-            <div className="processed-receipt-result">
-              <h2>Receipt Details</h2>
-              
-              <div className="receipt-form">
-                <div className="form-group">
-                  <label htmlFor="vendor">
-                    Vendor: <span className="required">*</span>
-                  </label>
-                  <input
-                    id="vendor"
-                    type="text"
-                    value={editableData.vendor}
-                    onChange={(e) => handleInputChange("vendor", e.target.value)}
-                    placeholder="Enter vendor name"
-                    required
-                  />
-                </div>
+            {/* Right Column - Details and Candidates */}
+            <div className="right-column">
+              {/* Top Right - Receipt Details Form */}
+              <div className="receipt-details-section">
+                <h3>Receipt Details</h3>
+                
+                <div className="receipt-form">
+                  <div className="form-group">
+                    <label htmlFor="vendor">
+                      Vendor: <span className="required">*</span>
+                    </label>
+                    <input
+                      id="vendor"
+                      type="text"
+                      value={editableData.vendor}
+                      onChange={(e) => handleInputChange("vendor", e.target.value)}
+                      placeholder="Enter vendor name"
+                      required
+                    />
+                  </div>
 
-                <div className="form-group">
-                  <label htmlFor="date">Date:</label>
-                  <input
-                    id="date"
-                    type="date"
-                    value={editableData.date}
-                    onChange={(e) => handleInputChange("date", e.target.value)}
-                  />
-                </div>
+                  <div className="form-group">
+                    <label htmlFor="date">Date:</label>
+                    <input
+                      id="date"
+                      type="date"
+                      value={editableData.date}
+                      onChange={(e) => handleInputChange("date", e.target.value)}
+                    />
+                  </div>
 
-                <div className="form-group">
-                  <label htmlFor="amount">Amount:</label>
-                  <input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    value={editableData.amount}
-                    onChange={(e) => handleInputChange("amount", e.target.value)}
-                    placeholder="Enter amount"
-                  />
-                </div>
+                  <div className="form-group">
+                    <label htmlFor="amount">Amount:</label>
+                    <input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      value={editableData.amount}
+                      onChange={(e) => handleInputChange("amount", e.target.value)}
+                      placeholder="Enter amount"
+                    />
+                  </div>
 
-                <div className="form-actions">
-                  <button 
-                    onClick={handleSave} 
-                    className="btn-save"
-                    disabled={!canSave}
-                  >
-                    {isSaving ? 'Saving...' : 'Save'}
-                  </button>
-                  <button 
-                    onClick={handleDelete} 
-                    className="btn-delete"
-                    disabled={!canSave}
-                  >
-                    {isSaving ? 'Deleting...' : 'Delete'}
-                  </button>
-                  <button onClick={handleUploadAnother} className="btn-upload-another">
-                    Upload Another
-                  </button>
+                  <div className="form-actions">
+                    <button 
+                      onClick={handleSave} 
+                      className="btn-save"
+                      disabled={!canSave}
+                    >
+                      {isSaving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button 
+                      onClick={handleDelete} 
+                      className="btn-delete"
+                      disabled={!canSave}
+                    >
+                      {isSaving ? 'Deleting...' : 'Delete'}
+                    </button>
+                    <button onClick={handleUploadAnother} className="btn-upload-another">
+                      Upload Another
+                    </button>
+                  </div>
                 </div>
+              </div>
+
+              {/* Bottom Right - Candidate Transactions */}
+              <div className="candidate-transactions-section">
+                {isLoadingCandidates ? (
+                  <div className="loading-candidates">
+                    Loading candidate transactions...
+                  </div>
+                ) : (
+                  <CandidateTransactions transactions={candidateTransactions} />
+                )}
               </div>
             </div>
           </div>
