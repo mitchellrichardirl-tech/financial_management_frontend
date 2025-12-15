@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { processReceiptImage, getReceiptImage } from "../services/api";
+import { processReceiptImage, confirmReceipt, deleteReceipt } from "../services/api";
 import FileDropzone from "../components/FileDropzone";
 import ImagePreview from "../components/ImagePreview";
 
 function ProcessReceipts() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [processResult, setProcessResult] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   
   const [editableData, setEditableData] = useState({
     vendor: "",
@@ -19,8 +20,8 @@ function ProcessReceipts() {
   const handleUploadAnother = () => {
     setSelectedFile(null);
     setProcessResult(null);
-    setImageUrl(null);
     setError(null);
+    setSaveSuccess(false);
     setEditableData({ vendor: "", date: "", amount: "" });
   };
 
@@ -28,31 +29,25 @@ function ProcessReceipts() {
     setSelectedFile(file);
     setError(null);
     setProcessResult(null);
-    setImageUrl(null);
+    setSaveSuccess(false);
     setIsProcessing(true);
 
     try {
       const result = await processReceiptImage(file);
       setProcessResult(result);
-      console.log('upload returns: ', result);
-      console.log('receipt id', result.data.receipt.id);
-      setSelectedFile(file);
-      const image_result = await getReceiptImage(result.data.receipt.id);
-      console.log('Image path: ', image_result.data.file_path)
-      setImageUrl(image_result.data.file_path);
-      console.log("Image URL: ", imageUrl);
-      if (result.extracted_data) {
+      console.log('upload returns:', result);
+      
+      const receipt = result.data?.receipt;
+      if (receipt) {
         setEditableData({
-          vendor: result.extracted_data.vendor || "",
-          date: result.extracted_data.date ? 
-            result.extracted_data.date.split('T')[0] : "",
-          amount: result.extracted_data.amount?.toString() || ""
+          vendor: receipt.vendor || "",
+          date: receipt.date ? receipt.date.split('T')[0] : "",
+          amount: receipt.amount?.toString() || ""
         });
       }
     } catch (err) {
       setError(err.message || "Failed to process receipt");
       setSelectedFile(null);
-      setImageUrl(null);
     } finally {
       setIsProcessing(false);
     }
@@ -65,9 +60,75 @@ function ProcessReceipts() {
     }));
   };
 
-  const handleSave = () => {
-    console.log("Saving edited data:", editableData);
+  const handleSave = async () => {
+    setError(null);
+    setIsSaving(true);
+
+    try {
+      // Prepare data for the confirm endpoint
+      const receiptData = {
+        original_filename: selectedFile.name,
+        vendor: editableData.vendor,
+        amount: editableData.amount ? parseFloat(editableData.amount) : null,
+        date: editableData.date || null,
+        
+        // From the process result
+        id: processResult?.data?.receipt?.id,
+        stored_filename: processResult?.data?.receipt?.stored_filename,
+        file_path: processResult?.data?.receipt?.file_path,
+        confidence: processResult?.data?.receipt?.confidence || 0,
+        selected_method: processResult?.data?.receipt?.selected_method || 'manual',
+        raw_text: processResult?.data?.receipt?.extracted_text,
+        page_number: processResult?.data?.receipt?.page_number || 1
+      };
+
+      console.log("Saving receipt data:", receiptData);
+      
+      const saveResult = await confirmReceipt(receiptData);
+      console.log("Save result:", saveResult);
+      
+      setSaveSuccess(true);
+      
+      // Optional: Clear form after successful save or show success message
+      setTimeout(() => {
+        handleUploadAnother();
+      }, 2000);
+      
+    } catch (err) {
+      setError(err.message || "Failed to save receipt");
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const handleDelete = async () => {
+    setError(null);
+    setIsSaving(true);
+
+    try {
+      const receiptData = {
+        receiptId: processResult?.data?.receipt?.id
+      };
+
+      console.log("Deleting receipt:", receiptData);
+
+      const deleteResult = await deleteReceipt(receiptData);
+      
+      console.log("Deletion result:", deleteResult);
+
+      setSaveSuccess(true);
+
+      setTimeout(() => {
+        handleUploadAnother();
+      }, 2000);
+    } catch (err) {
+      setError(err.message || "Failed to delete receipt");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+  // Validation to ensure vendor is filled
+  const canSave = editableData.vendor.trim() !== '' && !isSaving;
 
   return (
     <div className="process-receipts">
@@ -76,6 +137,12 @@ function ProcessReceipts() {
       {error && (
         <div className="receipt-error">
           {error}
+        </div>
+      )}
+
+      {saveSuccess && (
+        <div className="receipt-success">
+          Receipt saved successfully!
         </div>
       )}
 
@@ -92,7 +159,7 @@ function ProcessReceipts() {
             <div className="receipt-image-container">
               <h3>Uploaded Receipt</h3>
               <ImagePreview 
-                file={imageUrl} 
+                src={`/api/receipts/${processResult?.data?.receipt?.id}/image`}
                 alt="Receipt image"
                 maxHeight="500px"
               />
@@ -104,13 +171,16 @@ function ProcessReceipts() {
               
               <div className="receipt-form">
                 <div className="form-group">
-                  <label htmlFor="vendor">Vendor:</label>
+                  <label htmlFor="vendor">
+                    Vendor: <span className="required">*</span>
+                  </label>
                   <input
                     id="vendor"
                     type="text"
                     value={editableData.vendor}
                     onChange={(e) => handleInputChange("vendor", e.target.value)}
                     placeholder="Enter vendor name"
+                    required
                   />
                 </div>
 
@@ -137,8 +207,19 @@ function ProcessReceipts() {
                 </div>
 
                 <div className="form-actions">
-                  <button onClick={handleSave} className="btn-save">
-                    Save
+                  <button 
+                    onClick={handleSave} 
+                    className="btn-save"
+                    disabled={!canSave}
+                  >
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    onClick={handleDelete} 
+                    className="btn-delete"
+                    disabled={!canSave}
+                  >
+                    {isSaving ? 'Deleting...' : 'Delete'}
                   </button>
                   <button onClick={handleUploadAnother} className="btn-upload-another">
                     Upload Another

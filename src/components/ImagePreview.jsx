@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import './ImagePreview.css';
 
-// Set up the worker - use the version from pdfjs itself
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function ImagePreview({ 
-  file, 
-  alt = "Uploaded file",
+  src,
+  alt = "File preview",
   maxWidth = "100%",
   maxHeight = "400px",
   enableZoom = true
@@ -22,36 +22,47 @@ function ImagePreview({
   const [pageNumber, setPageNumber] = useState(1);
 
   useEffect(() => {
-    if (!file) {
+    if (!src) {
       setPreviewUrl(null);
       setIsLoading(false);
       return;
     }
 
-    const isImage = file.type.startsWith('image/');
-    const isPDF = file.type === 'application/pdf';
-
-    if (!isImage && !isPDF) {
-      setError('File must be an image or PDF');
-      setIsLoading(false);
-      return;
-    }
-
-    setFileType(isImage ? 'image' : 'pdf');
-    setPageNumber(1);
-
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
     setError(null);
+    setPageNumber(1);
+    setIsLoading(true);
 
-    if (isPDF) {
-      setIsLoading(true);
-    }
+    fetch(src, { method: 'HEAD' })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch file: ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('Content-Type');
+        
+        if (!contentType) {
+          throw new Error('No content type specified');
+        }
 
-    return () => {
-      URL.revokeObjectURL(objectUrl);
-    };
-  }, [file]);
+        const isImage = contentType.startsWith('image/');
+        const isPDF = contentType.includes('application/pdf');
+
+        if (!isImage && !isPDF) {
+          throw new Error(`Unsupported file type: ${contentType}`);
+        }
+
+        setFileType(isImage ? 'image' : 'pdf');
+        setPreviewUrl(src);
+        
+        if (isImage) {
+          setIsLoading(true);
+        }
+      })
+      .catch(err => {
+        setError(err.message);
+        setIsLoading(false);
+      });
+  }, [src]);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
@@ -64,24 +75,14 @@ function ImagePreview({
     setIsLoading(false);
   };
 
-  const handleImageLoad = () => {
-    setIsLoading(false);
-  };
-
+  const handleImageLoad = () => setIsLoading(false);
   const handleImageError = () => {
     setIsLoading(false);
     setError('Failed to load image');
   };
 
-  const openModal = () => {
-    if (enableZoom) {
-      setIsModalOpen(true);
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  const openModal = () => enableZoom && setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   const goToPrevPage = (e) => {
     e.stopPropagation();
@@ -94,60 +95,41 @@ function ImagePreview({
   };
 
   if (error) {
-    return (
-      <div style={{
-        padding: '20px',
-        backgroundColor: '#f8d7da',
-        color: '#721c24',
-        borderRadius: '8px',
-        textAlign: 'center'
-      }}>
-        {error}
-      </div>
-    );
+    return <div className="image-preview-error">{error}</div>;
   }
 
-  if (!previewUrl) {
+  if (!previewUrl && !isLoading) {
     return null;
   }
 
+  const showPagination = fileType === 'pdf' && numPages > 1;
+
   return (
     <>
-      <div style={{
-        position: 'relative',
-        maxWidth: maxWidth,
-        cursor: enableZoom ? 'zoom-in' : 'default',
-        width: '100%'
-      }}>
+      <div 
+        className={`image-preview-container ${enableZoom ? 'zoomable' : ''}`}
+        style={{ maxWidth }}
+      >
         {isLoading && (
-          <div style={{
-            padding: '40px',
-            textAlign: 'center',
-            color: '#666'
-          }}>
-            Loading...
-          </div>
+          <div className="image-preview-loading">Loading...</div>
         )}
         
-        {fileType === 'image' ? (
+        {fileType === 'image' && previewUrl && (
           <img
             src={previewUrl}
             alt={alt}
             onLoad={handleImageLoad}
             onError={handleImageError}
             onClick={openModal}
-            style={{
-              maxWidth: '100%',
-              maxHeight: maxHeight,
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-              display: isLoading ? 'none' : 'block'
-            }}
+            className={`image-preview-img ${isLoading ? 'hidden' : ''}`}
+            style={{ maxHeight }}
           />
-        ) : (
+        )}
+        
+        {fileType === 'pdf' && previewUrl && (
           <div 
             onClick={openModal}
-            style={{ display: isLoading ? 'none' : 'block' }}
+            className={isLoading ? 'hidden' : ''}
           >
             <Document
               file={previewUrl}
@@ -163,22 +145,12 @@ function ImagePreview({
               />
             </Document>
             
-            {numPages > 1 && (
-              <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '10px',
-                marginTop: '10px'
-              }}>
+            {showPagination && (
+              <div className="image-preview-pagination">
                 <button 
                   onClick={goToPrevPage}
                   disabled={pageNumber <= 1}
-                  style={{
-                    padding: '5px 10px',
-                    cursor: pageNumber <= 1 ? 'not-allowed' : 'pointer',
-                    opacity: pageNumber <= 1 ? 0.5 : 1
-                  }}
+                  className="pagination-btn"
                 >
                   Previous
                 </button>
@@ -186,11 +158,7 @@ function ImagePreview({
                 <button 
                   onClick={goToNextPage}
                   disabled={pageNumber >= numPages}
-                  style={{
-                    padding: '5px 10px',
-                    cursor: pageNumber >= numPages ? 'not-allowed' : 'pointer',
-                    opacity: pageNumber >= numPages ? 0.5 : 1
-                  }}
+                  className="pagination-btn"
                 >
                   Next
                 </button>
@@ -199,80 +167,28 @@ function ImagePreview({
           </div>
         )}
 
-        {enableZoom && !isLoading && (
+        {enableZoom && !isLoading && previewUrl && (
           <div 
             onClick={openModal}
-            style={{
-              position: 'absolute',
-              bottom: fileType === 'pdf' && numPages > 1 ? '50px' : '8px',
-              right: '8px',
-              background: 'rgba(0,0,0,0.6)',
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              fontSize: '12px',
-              cursor: 'pointer'
-            }}
+            className={`image-preview-zoom-hint ${showPagination ? 'with-pagination' : ''}`}
           >
             Click to enlarge
           </div>
         )}
       </div>
 
-      {/* Modal for zoomed view */}
       {isModalOpen && (
-        <div 
-          onClick={closeModal}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            cursor: 'zoom-out',
-            padding: '20px'
-          }}
-        >
-          <button
-            onClick={closeModal}
-            style={{
-              position: 'absolute',
-              top: '20px',
-              right: '20px',
-              background: 'transparent',
-              border: 'none',
-              color: 'white',
-              fontSize: '32px',
-              cursor: 'pointer',
-              zIndex: 1001
-            }}
-          >
+        <div className="image-preview-modal" onClick={closeModal}>
+          <button className="modal-close-btn" onClick={closeModal}>
             ×
           </button>
           
-          <div onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             {fileType === 'image' ? (
-              <img
-                src={previewUrl}
-                alt={alt}
-                style={{
-                  maxWidth: '90vw',
-                  maxHeight: '90vh',
-                  objectFit: 'contain'
-                }}
-              />
+              <img src={previewUrl} alt={alt} className="modal-image" />
             ) : (
               <>
-                <Document
-                  file={previewUrl}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                >
+                <Document file={previewUrl} onLoadSuccess={onDocumentLoadSuccess}>
                   <Page 
                     pageNumber={pageNumber}
                     width={Math.min(window.innerWidth * 0.9, 1200)}
@@ -281,23 +197,12 @@ function ImagePreview({
                   />
                 </Document>
                 
-                {numPages > 1 && (
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '10px',
-                    marginTop: '20px',
-                    color: 'white'
-                  }}>
+                {showPagination && (
+                  <div className="image-preview-pagination modal-pagination">
                     <button 
                       onClick={goToPrevPage}
                       disabled={pageNumber <= 1}
-                      style={{
-                        padding: '8px 16px',
-                        cursor: pageNumber <= 1 ? 'not-allowed' : 'pointer',
-                        opacity: pageNumber <= 1 ? 0.5 : 1
-                      }}
+                      className="pagination-btn"
                     >
                       Previous
                     </button>
@@ -305,11 +210,7 @@ function ImagePreview({
                     <button 
                       onClick={goToNextPage}
                       disabled={pageNumber >= numPages}
-                      style={{
-                        padding: '8px 16px',
-                        cursor: pageNumber >= numPages ? 'not-allowed' : 'pointer',
-                        opacity: pageNumber >= numPages ? 0.5 : 1
-                      }}
+                      className="pagination-btn"
                     >
                       Next
                     </button>
