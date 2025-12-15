@@ -1,6 +1,11 @@
 import './CandidateTransactions.css';
 
-function CandidateTransactions({transactions, onSelectTransaction}) {
+function CandidateTransactions({ 
+  transactions, 
+  onSelectTransaction, 
+  linkedTransactionId,
+  disabled 
+}) {
   if (!transactions || transactions.length === 0) {
     return (
       <div className="candidate-transactions-container">
@@ -45,31 +50,45 @@ function CandidateTransactions({transactions, onSelectTransaction}) {
             </tr>
           </thead>
           <tbody>
-            {transactions.map((tx) => (
-              <tr key={tx.id} className="transaction-row">
-                <td className="date-cell">
-                  <span className="view-value">{formatDate(tx.transaction_date)}</span>
-                </td>
-                <td className="description-cell">
-                  <span className="view-value">{tx.description}</span>
-                </td>
-                <td className="party-cell">
-                  <span className="view-value">{tx.party_name || 'Unknown'}</span>
-                </td>
-                <td className="amount-cell">
-                  <span className="view-value">{formatAmount(tx.amount)}</span>
-                </td>
-                <td className="actions-cell">
-                  <button 
-                    className="btn-select"
-                    onClick={() => onSelectTransaction && onSelectTransaction(tx)}
-                    title="Select this transaction"
-                  >
-                    Select
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {transactions.map((tx) => {
+              const isLinked = linkedTransactionId === tx.id;
+              
+              return (
+                <tr 
+                  key={tx.id} 
+                  className={`transaction-row ${isLinked ? 'linked' : ''}`}
+                >
+                  <td className="date-cell">
+                    <span className="view-value">{formatDate(tx.transaction_date)}</span>
+                  </td>
+                  <td className="description-cell">
+                    <span className="view-value">{tx.description}</span>
+                  </td>
+                  <td className="party-cell">
+                    <span className="view-value">{tx.party_name || 'Unknown'}</span>
+                  </td>
+                  <td className="amount-cell">
+                    <span className="view-value">{formatAmount(tx.amount)}</span>
+                  </td>
+                  <td className="actions-cell">
+                    {isLinked ? (
+                      <span className="linked-indicator">
+                        ✓ Linked
+                      </span>
+                    ) : (
+                      <button 
+                        className="btn-select"
+                        onClick={() => onSelectTransaction && onSelectTransaction(tx)}
+                        title="Select this transaction"
+                        disabled={disabled || linkedTransactionId !== null}
+                      >
+                        Select
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

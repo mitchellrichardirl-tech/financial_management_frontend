@@ -209,3 +209,57 @@
     transform: translateY(0);
   }
 }
+
+/* Linked transaction row highlight */
+.transaction-row.linked {
+  background-color: #d4edda;
+  animation: highlightPulse 1s ease-in-out;
+}
+
+.transaction-row.linked:hover {
+  background-color: #c3e6cb;
+}
+
+@keyframes highlightPulse {
+  0% {
+    background-color: #28a745;
+  }
+  50% {
+    background-color: #d4edda;
+  }
+  100% {
+    background-color: #d4edda;
+  }
+}
+
+/* Linked indicator badge */
+.linked-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: #28a745;
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Disabled button state */
+.btn-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #6c757d;
+}
+
+.btn-select:disabled:hover {
+  background-color: #6c757d;
+}
+
+/* No transactions message */
+.no-transactions {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}

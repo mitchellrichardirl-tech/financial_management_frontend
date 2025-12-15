@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { processReceiptImage, confirmReceipt, deleteReceipt, getCandidateTransactions } from "../services/api";
+import { processReceiptImage, confirmReceipt, deleteReceipt, getCandidateTransactions, updateTransaction } from "../services/api";
 import FileDropzone from "../components/FileDropzone";
 import ImagePreview from "../components/ImagePreview";
 import CandidateTransactions from "../components/CandidateTransactions";
@@ -9,9 +9,11 @@ function ProcessReceipts() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLinking, setIsLinking] = useState(false);
   const [error, setError] = useState(null);
   const [processResult, setProcessResult] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [linkSuccess, setLinkSuccess] = useState(false);
   
   const [editableData, setEditableData] = useState({
     vendor: "",
@@ -19,14 +21,14 @@ function ProcessReceipts() {
     amount: ""
   });
 
-  // New state for candidate transactions
+  // State for candidate transactions
   const [candidateTransactions, setCandidateTransactions] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
+  const [linkedTransactionId, setLinkedTransactionId] = useState(null);
 
   // Fetch candidate transactions when editableData changes
   useEffect(() => {
     const fetchCandidates = async () => {
-      // Only fetch if we have at least a date or amount
       if (!editableData.date && !editableData.amount) {
         setCandidateTransactions([]);
         return;
@@ -55,7 +57,6 @@ function ProcessReceipts() {
       }
     };
 
-    // Debounce the API call to avoid too many requests while typing
     const timeoutId = setTimeout(fetchCandidates, 500);
     return () => clearTimeout(timeoutId);
   }, [editableData.date, editableData.amount, editableData.vendor]);
@@ -65,8 +66,10 @@ function ProcessReceipts() {
     setProcessResult(null);
     setError(null);
     setSaveSuccess(false);
+    setLinkSuccess(false);
     setEditableData({ vendor: "", date: "", amount: "" });
     setCandidateTransactions([]);
+    setLinkedTransactionId(null);
   };
 
   const handleFileSelect = async (file) => {
@@ -74,6 +77,8 @@ function ProcessReceipts() {
     setError(null);
     setProcessResult(null);
     setSaveSuccess(false);
+    setLinkSuccess(false);
+    setLinkedTransactionId(null);
     setIsProcessing(true);
 
     try {
@@ -104,25 +109,29 @@ function ProcessReceipts() {
     }));
   };
 
+  // Helper function to build receipt data object
+  const buildReceiptData = () => {
+    return {
+      original_filename: selectedFile.name,
+      vendor: editableData.vendor,
+      amount: editableData.amount ? parseFloat(editableData.amount) : null,
+      date: editableData.date || null,
+      id: processResult?.data?.receipt?.id,
+      stored_filename: processResult?.data?.receipt?.stored_filename,
+      file_path: processResult?.data?.receipt?.file_path,
+      confidence: processResult?.data?.receipt?.confidence || 0,
+      selected_method: processResult?.data?.receipt?.selected_method || 'manual',
+      raw_text: processResult?.data?.receipt?.extracted_text,
+      page_number: processResult?.data?.receipt?.page_number || 1
+    };
+  };
+
   const handleSave = async () => {
     setError(null);
     setIsSaving(true);
 
     try {
-      const receiptData = {
-        original_filename: selectedFile.name,
-        vendor: editableData.vendor,
-        amount: editableData.amount ? parseFloat(editableData.amount) : null,
-        date: editableData.date || null,
-        id: processResult?.data?.receipt?.id,
-        stored_filename: processResult?.data?.receipt?.stored_filename,
-        file_path: processResult?.data?.receipt?.file_path,
-        confidence: processResult?.data?.receipt?.confidence || 0,
-        selected_method: processResult?.data?.receipt?.selected_method || 'manual',
-        raw_text: processResult?.data?.receipt?.extracted_text,
-        page_number: processResult?.data?.receipt?.page_number || 1
-      };
-
+      const receiptData = buildReceiptData();
       console.log("Saving receipt data:", receiptData);
       
       const saveResult = await confirmReceipt(receiptData);
@@ -138,6 +147,51 @@ function ProcessReceipts() {
       setError(err.message || "Failed to save receipt");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSelectTransaction = async (transaction) => {
+    setError(null);
+    setLinkSuccess(false);
+    setIsLinking(true);
+
+    try {
+      // Step 1: Save/confirm the receipt
+      const receiptData = buildReceiptData();
+      console.log("Saving receipt before linking:", receiptData);
+      
+      const saveResult = await confirmReceipt(receiptData);
+      console.log("Receipt save result:", saveResult);
+
+      // Get the receipt ID from the response
+      const receiptId = saveResult.data?.receipt?.id || saveResult.receipt?.id || saveResult.id;
+      
+      if (!receiptId) {
+        throw new Error("Failed to get receipt ID from save response");
+      }
+
+      // Step 2: Update the transaction with the receipt ID
+      console.log(`Linking transaction ${transaction.id} to receipt ${receiptId}`);
+      
+      const updateResult = await updateTransaction(transaction.id, {
+        receipt_id: receiptId
+      });
+      console.log("Transaction update result:", updateResult);
+
+      // Step 3: Update UI state
+      setLinkedTransactionId(transaction.id);
+      setLinkSuccess(true);
+
+      // Reset after delay
+      setTimeout(() => {
+        handleUploadAnother();
+      }, 3000);
+
+    } catch (err) {
+      console.error("Failed to link receipt to transaction:", err);
+      setError(err.message || "Failed to link receipt to transaction");
+    } finally {
+      setIsLinking(false);
     }
   };
 
@@ -168,7 +222,7 @@ function ProcessReceipts() {
     }
   };
 
-  const canSave = editableData.vendor.trim() !== '' && !isSaving;
+  const canSave = editableData.vendor.trim() !== '' && !isSaving && !isLinking;
 
   return (
     <div className="process-receipts">
@@ -186,9 +240,21 @@ function ProcessReceipts() {
         </div>
       )}
 
+      {linkSuccess && (
+        <div className="receipt-success">
+          Receipt successfully linked to transaction!
+        </div>
+      )}
+
       {isProcessing && (
         <div className="receipt-processing">
           Processing receipt...
+        </div>
+      )}
+
+      {isLinking && (
+        <div className="receipt-processing">
+          Linking receipt to transaction...
         </div>
       )}
 
@@ -225,6 +291,7 @@ function ProcessReceipts() {
                       onChange={(e) => handleInputChange("vendor", e.target.value)}
                       placeholder="Enter vendor name"
                       required
+                      disabled={isLinking}
                     />
                   </div>
 
@@ -235,6 +302,7 @@ function ProcessReceipts() {
                       type="date"
                       value={editableData.date}
                       onChange={(e) => handleInputChange("date", e.target.value)}
+                      disabled={isLinking}
                     />
                   </div>
 
@@ -247,6 +315,7 @@ function ProcessReceipts() {
                       value={editableData.amount}
                       onChange={(e) => handleInputChange("amount", e.target.value)}
                       placeholder="Enter amount"
+                      disabled={isLinking}
                     />
                   </div>
 
@@ -255,6 +324,7 @@ function ProcessReceipts() {
                       onClick={handleSave} 
                       className="btn-save"
                       disabled={!canSave}
+                      title="Save receipt without linking to a transaction"
                     >
                       {isSaving ? 'Saving...' : 'Save'}
                     </button>
@@ -265,7 +335,11 @@ function ProcessReceipts() {
                     >
                       {isSaving ? 'Deleting...' : 'Delete'}
                     </button>
-                    <button onClick={handleUploadAnother} className="btn-upload-another">
+                    <button 
+                      onClick={handleUploadAnother} 
+                      className="btn-upload-another"
+                      disabled={isLinking}
+                    >
                       Upload Another
                     </button>
                   </div>
@@ -279,7 +353,12 @@ function ProcessReceipts() {
                     Loading candidate transactions...
                   </div>
                 ) : (
-                  <CandidateTransactions transactions={candidateTransactions} />
+                  <CandidateTransactions 
+                    transactions={candidateTransactions}
+                    onSelectTransaction={handleSelectTransaction}
+                    linkedTransactionId={linkedTransactionId}
+                    disabled={isLinking}
+                  />
                 )}
               </div>
             </div>
