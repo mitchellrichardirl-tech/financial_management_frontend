@@ -107,6 +107,7 @@ export default function CategorizeTransactions() {
 
       const data = await getTransactions(cleanFilters);
       
+      console.log('Transactions received: ', data);
       console.log('Received transactions:', data.length);
       
       setTransactions(data);

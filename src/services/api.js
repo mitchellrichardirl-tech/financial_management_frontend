@@ -320,3 +320,73 @@ export async function createParty(name, typeId, description = null) {
   });
   return response.party || response;
 }
+
+/**
+ * Process receipt image
+ */
+export async function processReceiptImage(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return await apiCall('/receipts/upload', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+/**
+ * Get receipt image
+ */
+export async function getReceiptImage(receiptId) {
+  console.log('API url: ', `/receipts/${receiptId}/image`);
+  return await apiCall(`/receipts/${receiptId}/image`, {
+    method: 'GET'
+  });
+}
+
+/**
+ * Confirm receipt attributes
+ */
+export const confirmReceipt = async (receiptData) => {
+  const response = await fetch('/api/receipts/confirm', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(receiptData)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to save receipt');
+  }
+
+  return response.json();
+};
+
+/**
+ * Delete receipt
+ */
+export const deleteReceipt = async(receiptId) => {
+  console.log('API url: ', `/receipts/${receiptId.receiptId}/cancel`);
+  return await apiCall(`/receipts/${receiptId.receiptId}/cancel`, {
+    method: 'POST'
+  });
+}
+
+/**
+ * Get candidate transactions for a receipt
+ */
+export const getCandidateTransactions = async (receiptData) => {
+  const params = {};
+  if (receiptData.date) params.transaction_date = receiptData.date;
+  if (receiptData.amount) params.amount = receiptData.amount * -1;
+  if (receiptData.vendor) params.party_name = receiptData.vendor;
+  return await apiCall('/transactions/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params)
+  });
+};
