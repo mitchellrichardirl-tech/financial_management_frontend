@@ -3,6 +3,7 @@ import { getAccounts, previewFile, importFile } from '../services/api';
 import FileDropzone from '../components/FileDropzone';
 import PreviewTable from '../components/PreviewTable';
 import ImportResult from '../components/ImportResult';
+import AccountSelector from '../components/AccountSelector';
 import './UploadStatement.css';
 
 function UploadStatement() {
@@ -33,7 +34,7 @@ function UploadStatement() {
 
     try {
       const preview = await previewFile(file);
-      setPreviewData(preview);
+      setPreviewData(preview.data);
       
       const accountsData = await getAccounts();
       setAccounts(accountsData);
@@ -49,8 +50,15 @@ function UploadStatement() {
     setAccounts([...accounts, newAccount]);
   };
 
+  const handleAccountChange = (accountId) => {
+    setSelectedAccountId(accountId);
+    if (accountId && error === 'Please select an account') {
+      setError(null);
+    }
+  };
+
   const handleImport = async () => {
-    if (selectedAccountId === '') {
+    if (selectedAccountId === '' || !selectedAccountId) {
       setError('Please select an account');
       return;
     }
@@ -60,12 +68,6 @@ function UploadStatement() {
 
     try {
       const result = await importFile(selectedFile, startRow, selectedAccountId);
-      
-      // Debug: Log the actual response
-      console.log('Import API response:', result);
-      console.log('Response type:', typeof result);
-      console.log('Response keys:', result ? Object.keys(result) : 'null');
-      
       setImportResult(result);
     } catch (err) {
       console.error('Import error:', err);
@@ -122,75 +124,76 @@ function UploadStatement() {
             </div>
           )}
 
-          {selectedFile && previewData && (
-            <>
-              <div className="file-info">
-                <div className="file-info-item">
-                  <span className="file-info-label">File:</span>
-                  <span className="file-info-value">{selectedFile.name}</span>
-                </div>
-                <div className="file-info-divider"></div>
-                <div className="file-info-item">
-                  <span className="file-info-label">Type:</span>
-                  <span className="file-info-value">{getFileExtension(selectedFile.name)}</span>
-                </div>
-                <div className="file-info-divider"></div>
-                <div className="file-info-item">
-                  <span className="file-info-label">Size:</span>
-                  <span className="file-info-value">{formatFileSize(selectedFile.size)}</span>
-                </div>
-                <button className="file-remove-btn" onClick={handleUploadAnother}>
-                  Remove
-                </button>
+          <div className="preview-section">
+              {/* File Info Table - Fixed at top */}
+              <div className="file-info-table">
+                <table>
+                  <tbody>
+                    <tr>
+                      <td className="info-label">File Name:</td>
+                      <td className="info-value">{selectedFile.name}</td>
+                      <td className="info-label">Type:</td>
+                      <td className="info-value">{getFileExtension(selectedFile.name)}</td>
+                      <td className="info-label">Size:</td>
+                      <td className="info-value">{formatFileSize(selectedFile.size)}</td>
+                      <td className="info-label">Total Rows:</td>
+                      <td className="info-value">{previewData.total_rows}</td>
+                      <td className="info-actions">
+                        <button className="btn-remove" onClick={handleUploadAnother}>
+                          Remove File
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              <div className="preview-section">
-                <div className="preview-table-container">
-                  <PreviewTable 
-                    previewData={previewData}
-                    startRow={startRow}
-                    onStartRowChange={setStartRow}
-                    compact={true}
+              {/* Import Controls - Fixed below file info */}
+              <div className="import-controls">
+                <div className="control-group">
+                  <label htmlFor="start-row">Start Row:</label>
+                  <input
+                    id="start-row"
+                    type="number"
+                    min="1"
+                    max={previewData.total_rows}
+                    value={startRow}
+                    onChange={(e) => setStartRow(parseInt(e.target.value) || 1)}
+                    className="control-input"
                   />
                 </div>
 
-                <div className="import-controls">
-                  <div className="start-row-control">
-                    <label>Start Row:</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={startRow}
-                      onChange={(e) => setStartRow(parseInt(e.target.value) || 1)}
-                    />
-                  </div>
+                <div className="control-group account-group">
+                  <AccountSelector
+                    accounts={accounts}
+                    selectedAccountId={selectedAccountId}
+                    onAccountChange={handleAccountChange}
+                    onAccountCreated={handleAccountCreated}
+                    disabled={isLoading}
+                  />
+                </div>
 
-                  <div className="account-control">
-                    <label>Account:</label>
-                    <select
-                      value={selectedAccountId}
-                      onChange={(e) => setSelectedAccountId(e.target.value)}
-                      disabled={isLoading}
-                    >
-                      <option value="">-- Select Account --</option>
-                      {accounts.map(account => (
-                        <option key={account.id} value={account.id}>
-                          {account.name || account.account_name || account.title || `Account ${account.id}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
+                <div className="control-group btn-group">
                   <button
-                    className="import-btn"
+                    className="btn-import"
                     onClick={handleImport}
-                    disabled={isLoading || selectedAccountId === ''}
+                    disabled={isLoading || !selectedAccountId}
                   >
                     {isLoading ? 'Importing...' : 'Import Transactions'}
                   </button>
                 </div>
               </div>
-            </>
+
+              {/* Preview Table - Scrollable */}
+              <div className="preview-table-wrapper">
+                <PreviewTable 
+                  previewData={previewData}
+                  startRow={startRow}
+                  onStartRowChange={setStartRow}
+                  compact={true}
+                />
+              </div>
+            </div>
           )}
         </>
       )}

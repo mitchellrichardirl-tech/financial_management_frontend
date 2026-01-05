@@ -1,3 +1,4 @@
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
 /**
@@ -390,3 +391,14 @@ export const getCandidateTransactions = async (receiptData) => {
     body: JSON.stringify(params)
   });
 };
+
+/**
+ * Upload multiple receipt files using the upload-stream endpoint
+ */
+export async function uploadReceiptsStream(formData) {
+  // Return the fetch response directly for streaming
+  return await apiCall('/receipts/upload-stream', {
+    method: 'POST',
+    body: formData,
+  });
+}
