@@ -12,61 +12,78 @@ function PreviewTable({ previewData, startRow, onStartRowChange }) {
     );
   }
 
-  // Preview treats row 1 as header, so data starts at row 2
-  const ROW_OFFSET = 1;
+  const ROW_OFFSET = 1; // Because data starts from row 2 (row 1 is headers)
 
   return (
-    <div style={{ marginTop: '20px' }}>
-      <h2>File Preview</h2>
+    <div style={{ 
+      padding: '15px', 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column',
+      overflow: 'hidden'           // Prevents outer scroll
+    }}>
+      <h2 style={{ margin: '0 0 15px 0', flexShrink: 0 }}>File Preview</h2>
       
-      {/* File info */}
+      {/* Info box - prevent shrinking */}
       <div style={{ 
-        padding: '15px', 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: '4px',
-        marginBottom: '20px'
+        padding: '10px 15px', 
+        backgroundColor: '#e7f3ff', 
+        borderLeft: '4px solid #4a90e2',
+        marginBottom: '15px',
+        fontSize: '13px',
+        color: '#333',
+        flexShrink: 0
       }}>
-        <p><strong>File:</strong> {previewData.file_name}</p>
-        <p><strong>Type:</strong> {previewData.file_type}</p>
-        <p><strong>Total Rows:</strong> {total_rows}</p>
-        <p><strong>Columns:</strong> {columns.length}</p>
-        <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
-          Note: Preview shows rows 2 onwards (row 1 was used as column headers)
-        </p>
-      </div>
-
-      {/* Start row selector */}
-      <div style={{ marginBottom: '20px' }}>
-        <label htmlFor="startRow" style={{ marginRight: '10px' }}>
-          <strong>Start importing from row:</strong>
-        </label>
-        <input
-          id="startRow"
-          type="number"
-          min="1"
-          max={total_rows}
-          value={startRow}
-          onChange={(e) => onStartRowChange(parseInt(e.target.value))}
-          style={{
-            padding: '5px 10px',
-            fontSize: '14px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            width: '80px'
-          }}
-        />
-        <span style={{ marginLeft: '10px', color: '#666', fontSize: '14px' }}>
-          (Row {startRow} in the original file)
-        </span>
+        <div style={{ marginBottom: '8px' }}>
+          <strong>Note:</strong> Preview shows rows 2 onwards (row 1 was used as column headers).
+        </div>
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{
+              width: '16px',
+              height: '16px',
+              backgroundColor: '#f8d7da',
+              border: '1px solid #dee2e6',
+              marginRight: '6px'
+            }}></div>
+            <span>Rows to skip</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{
+              width: '16px',
+              height: '16px',
+              backgroundColor: '#fff3cd',
+              border: '1px solid #dee2e6',
+              marginRight: '6px'
+            }}></div>
+            <span>Header row</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{
+              width: '16px',
+              height: '16px',
+              backgroundColor: 'white',
+              border: '1px solid #dee2e6',
+              marginRight: '6px'
+            }}></div>
+            <span>Data rows</span>
+          </div>
+        </div>
       </div>
 
       {/* Table */}
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ 
+        flex: 1, 
+        minHeight: 0,
+        overflowY: 'auto', 
+        overflowX: 'auto', 
+        border: '1px solid #dee2e6', 
+        borderRadius: '4px' 
+      }}>
         <table style={{
           width: '100%',
           borderCollapse: 'collapse',
-          backgroundColor: 'white',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          backgroundColor: 'white'
         }}>
           <thead>
             <tr style={{ backgroundColor: '#f8f9fa' }}>
@@ -77,7 +94,8 @@ function PreviewTable({ previewData, startRow, onStartRowChange }) {
                 fontWeight: 'bold',
                 position: 'sticky',
                 top: 0,
-                backgroundColor: '#f8f9fa'
+                backgroundColor: '#f8f9fa',
+                zIndex: 10
               }}>
                 Row
               </th>
@@ -86,7 +104,11 @@ function PreviewTable({ previewData, startRow, onStartRowChange }) {
                   padding: '12px',
                   textAlign: 'left',
                   borderBottom: '2px solid #dee2e6',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  position: 'sticky',
+                  top: 0,
+                  backgroundColor: '#f8f9fa',
+                  zIndex: 10
                 }}>
                   <div>{col}</div>
                   {column_types && column_types[col] && (
@@ -139,45 +161,6 @@ function PreviewTable({ previewData, startRow, onStartRowChange }) {
             })}
           </tbody>
         </table>
-      </div>
-
-      {/* Legend */}
-      <div style={{ 
-        marginTop: '15px', 
-        fontSize: '14px',
-        display: 'flex',
-        gap: '20px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{
-            width: '20px',
-            height: '20px',
-            backgroundColor: '#f8d7da',
-            border: '1px solid #dee2e6',
-            marginRight: '8px'
-          }}></div>
-          <span>Rows to skip</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{
-            width: '20px',
-            height: '20px',
-            backgroundColor: '#fff3cd',
-            border: '1px solid #dee2e6',
-            marginRight: '8px'
-          }}></div>
-          <span>Start row (will be header)</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{
-            width: '20px',
-            height: '20px',
-            backgroundColor: 'white',
-            border: '1px solid #dee2e6',
-            marginRight: '8px'
-          }}></div>
-          <span>Data rows</span>
-        </div>
       </div>
     </div>
   );

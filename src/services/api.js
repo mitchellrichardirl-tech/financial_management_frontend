@@ -1,3 +1,4 @@
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
 /**
@@ -54,6 +55,7 @@ export async function importFile(file, startRow, accountId) {
   formData.append('has_header', 'true');
   formData.append('skip_empty_rows', 'true');
   formData.append('strip_whitespace', 'true');
+  formData.append('original_filename', file.name);
 
   console.log('Import request:', {
     url: '/tabular/import',
@@ -390,3 +392,21 @@ export const getCandidateTransactions = async (receiptData) => {
     body: JSON.stringify(params)
   });
 };
+
+/**
+ * Upload multiple receipt files using the upload-stream endpoint
+ */
+export async function uploadReceiptsStream(formData) {
+  // Return the fetch response directly for streaming
+  return await apiCall('/receipts/upload-stream', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+/**
+ * Get list of uploads, sorted by most recent first
+ */
+export async function getUploads() {
+  return await apiCall('/uploads');
+}

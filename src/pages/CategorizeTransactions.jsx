@@ -7,6 +7,7 @@ import {
   getSubCategories,
   getTypes,
   getParties,
+  getUploads,
   createCategory,
   createSubCategory,
   createType,
@@ -28,6 +29,7 @@ export default function CategorizeTransactions() {
   const [subCategories, setSubCategories] = useState([]);
   const [types, setTypes] = useState([]);
   const [parties, setParties] = useState([]);
+  const [uploads, setUploads] = useState([]);
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -55,22 +57,26 @@ export default function CategorizeTransactions() {
         categoriesData,
         subCategoriesData,
         typesData,
-        partiesData
+        partiesData,
+        uploadsData
       ] = await Promise.all([
         getAccounts(),
         getCategories(),
         getSubCategories(),
         getTypes(),
-        getParties()
+        getParties(),
+        getUploads()
       ]);
 
-      console.log('Accounts loaded:', accountsData);  // Add this
+      console.log('Accounts loaded:', accountsData);
+      console.log('Uploads loaded:', uploadsData);
       
       setAccounts(accountsData);
       setCategories(categoriesData);
       setSubCategories(subCategoriesData);
       setTypes(typesData);
       setParties(partiesData);
+      setUploads(uploadsData.data || uploadsData);
     } catch (err) {
       console.error('Error loading reference data:', err);
       setError('Failed to load reference data: ' + err.message);
@@ -272,6 +278,19 @@ export default function CategorizeTransactions() {
     );
   }
 
+  const formatUploadDate = (dateString) => {
+    if (!dateString) return 'Unknown date';
+    
+    const date = new Date(dateString);
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = date.toLocaleDateString('en-GB', { month: 'short' });
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${day} ${month}; ${hours}:${minutes}`;
+  };
+
   return (
     <div className="categorize-transactions">
       <div className="page-header">
@@ -293,6 +312,30 @@ export default function CategorizeTransactions() {
         </div>
       )}
 
+      <div className="filters-section">
+        <div className="filter-group">
+          <label htmlFor="upload-filter">Filter by Upload:</label>
+          <select
+            id="upload-filter"
+            value={filters.upload_id || ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              handleFilterChange({
+                ...filters,
+                upload_id: value ? parseInt(value) : null
+              });
+            }}
+          >
+            <option value="">All Uploads</option>
+            {uploads.map((upload) => (
+              <option key={upload.id} value={upload.id}>
+                {upload.original_filename} — {formatUploadDate(upload.upload_date)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
       <TransactionTable
         transactions={transactions}
         accounts={accounts}
