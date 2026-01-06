@@ -55,6 +55,7 @@ export async function importFile(file, startRow, accountId) {
   formData.append('has_header', 'true');
   formData.append('skip_empty_rows', 'true');
   formData.append('strip_whitespace', 'true');
+  formData.append('original_filename', file.name);
 
   console.log('Import request:', {
     url: '/tabular/import',
@@ -401,4 +402,11 @@ export async function uploadReceiptsStream(formData) {
     method: 'POST',
     body: formData,
   });
+}
+
+/**
+ * Get list of uploads, sorted by most recent first
+ */
+export async function getUploads() {
+  return await apiCall('/uploads');
 }

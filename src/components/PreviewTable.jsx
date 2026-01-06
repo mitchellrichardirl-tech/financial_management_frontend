@@ -12,21 +12,27 @@ function PreviewTable({ previewData, startRow, onStartRowChange }) {
     );
   }
 
-  // Preview treats row 1 as header, so data starts at row 2
-  const ROW_OFFSET = 1;
+  const ROW_OFFSET = 1; // Because data starts from row 2 (row 1 is headers)
 
   return (
-    <div style={{ padding: '15px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <h2 style={{ margin: '0 0 15px 0' }}>File Preview</h2>
+    <div style={{ 
+      padding: '15px', 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column',
+      overflow: 'hidden'           // Prevents outer scroll
+    }}>
+      <h2 style={{ margin: '0 0 15px 0', flexShrink: 0 }}>File Preview</h2>
       
-      {/* Info note and legend combined at top */}
+      {/* Info box - prevent shrinking */}
       <div style={{ 
         padding: '10px 15px', 
         backgroundColor: '#e7f3ff', 
         borderLeft: '4px solid #4a90e2',
         marginBottom: '15px',
         fontSize: '13px',
-        color: '#333'
+        color: '#333',
+        flexShrink: 0
       }}>
         <div style={{ marginBottom: '8px' }}>
           <strong>Note:</strong> Preview shows rows 2 onwards (row 1 was used as column headers).
@@ -66,7 +72,14 @@ function PreviewTable({ previewData, startRow, onStartRowChange }) {
       </div>
 
       {/* Table */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', border: '1px solid #dee2e6', borderRadius: '4px' }}>
+      <div style={{ 
+        flex: 1, 
+        minHeight: 0,
+        overflowY: 'auto', 
+        overflowX: 'auto', 
+        border: '1px solid #dee2e6', 
+        borderRadius: '4px' 
+      }}>
         <table style={{
           width: '100%',
           borderCollapse: 'collapse',
